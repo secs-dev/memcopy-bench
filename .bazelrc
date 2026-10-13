@@ -1,2 +1,14 @@
 # Performance measurements should use optimized builds by default.
 build -c opt
+
+# Instrument test binaries and their C/C++ dependencies for memory errors.
+build:asan --copt=-fsanitize=address
+build:asan --copt=-fno-omit-frame-pointer
+build:asan --copt=-g
+build:asan --linkopt=-fsanitize=address
+
+# Instrument test binaries and their C/C++ dependencies for undefined behavior.
+build:ubsan --copt=-fsanitize=undefined
+build:ubsan --copt=-fno-omit-frame-pointer
+build:ubsan --copt=-g
+build:ubsan --linkopt=-fsanitize=undefined

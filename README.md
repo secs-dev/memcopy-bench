@@ -26,11 +26,39 @@ Install [Bazelisk](https://github.com/bazelbuild/bazelisk). It selects the
 Bazel version pinned in `.bazelversion`. Commands are run from the repository
 root. Optimized mode is enabled by default in `.bazelrc`.
 
-## Build and test
+## C++ editor tooling
+
+Generate Bazel-aware compile commands for `clangd` and `clang-tidy` after
+changing C++ sources, targets, dependencies, or compile settings:
+
+```bash
+bazel run @hedron_compile_commands//:refresh_all
+```
+
+The generated root-level `compile_commands.json` is intentionally ignored by
+Git. Restart the editor language server after refreshing it if it does not
+reload the database automatically.
+
+## Build, lint, and test
 
 ```bash
 bazel build //...
 bazel test //...
+```
+
+Run the same C++ lint check used by CI (requires `clang-tidy` on `PATH`):
+
+```bash
+sh tools/run-clang-tidy.sh
+```
+
+Run tests with the supported sanitizers:
+
+```bash
+ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+  bazel test --config=asan //... --test_output=errors
+UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 \
+  bazel test --config=ubsan //... --test_output=errors
 ```
 
 For example, the initial reusable algorithm and its colocated test are:

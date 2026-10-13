@@ -9,6 +9,29 @@ on:
       - main
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - uses: bazel-contrib/setup-bazel@c5acdfb288317d0b5c0bbd7a396a3dc868bb0f86 # 0.19.0
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}
+          repository-cache: true
+          # Pull requests only restore caches, pushes to main refresh them.
+          cache-save: ${{ github.event_name == 'push' }}
+          bazelrc: |
+            common --announce_rc
+            common --color=yes
+
+      - name: Install clang-tidy
+        run: sudo apt-get update && sudo apt-get install --yes clang-tidy
+
+      - name: Lint C++ sources
+        run: sh tools/run-clang-tidy.sh
+
   test:
     runs-on: ubuntu-latest
 
@@ -34,3 +57,30 @@ jobs:
 
       - name: Test
         run: bazel test //... --test_output=errors
+
+  sanitizers:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - uses: bazel-contrib/setup-bazel@c5acdfb288317d0b5c0bbd7a396a3dc868bb0f86 # 0.19.0
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}
+          repository-cache: true
+          # Pull requests only restore caches, pushes to main refresh them.
+          cache-save: ${{ github.event_name == 'push' }}
+          bazelrc: |
+            common --announce_rc
+            common --color=yes
+
+      - name: Test with AddressSanitizer
+        run: >-
+          ASAN_OPTIONS=detect_leaks=1:halt_on_error=1
+          bazel test --config=asan //... --test_output=errors
+
+      - name: Test with UndefinedBehaviorSanitizer
+        run: >-
+          UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+          bazel test --config=ubsan //... --test_output=errors
