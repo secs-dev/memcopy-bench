@@ -9,10 +9,12 @@ architecture-specific assumptions.
 
 - `lib/` — reusable frame, memory, transport, and scenario implementations.
   Libraries do not depend on benchmarking or reporting infrastructure.
+  `lib/test/` is reserved for shared test-only support; component unit tests
+  remain colocated with their implementations.
 - `benchmarks/` — Google Benchmark executables. `memory/` holds operation
   microbenchmarks; `scenarios/` will hold complete workflow benchmarks.
-- `tests/` — integration and cross-component tests. Unit tests are colocated
-  with the library code they verify.
+- `tests/integration/` — reserved for cross-component integration tests when
+  they are needed. Unit tests are colocated with the library code they verify.
 - `tools/` — experiment automation and analysis utilities.
 - `results/` — raw benchmark output and experiment metadata (kept separate
   from analysis).
