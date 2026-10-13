@@ -55,10 +55,8 @@ sh tools/run-clang-tidy.sh
 Run tests with the supported sanitizers:
 
 ```bash
-ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
-  bazel test --config=asan //... --test_output=errors
-UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 \
-  bazel test --config=ubsan //... --test_output=errors
+bazel test --config=asan //... --test_output=errors
+bazel test --config=ubsan //... --test_output=errors
 ```
 
 For example, the initial reusable algorithm and its colocated test are:

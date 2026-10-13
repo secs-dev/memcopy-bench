@@ -6,7 +6,7 @@ Checks: 'google-*'
 FormatStyle: Google
 
 # Analyze project headers without reporting diagnostics from external modules.
-HeaderFilterRegex: '^(lib|benchmarks)/.*'
+HeaderFilterRegex: '(^|.*/)(lib|benchmarks)/.*'
 
 # Keep style diagnostics as warnings; projects can opt into -warnings-as-errors
 # in CI when the codebase is clean.
