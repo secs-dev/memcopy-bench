@@ -1,0 +1,3 @@
+# Google Benchmark range-for loops require an intentionally unused binding.
+InheritParentConfig: true
+Checks: '-clang-analyzer-deadcode.DeadStores'

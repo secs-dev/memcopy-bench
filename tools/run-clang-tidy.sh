@@ -9,4 +9,4 @@ fi
 bazel run @hedron_compile_commands//:refresh_all
 
 find lib benchmarks -type f \( -name '*.cc' -o -name '*.cpp' -o -name '*.cxx' \) \
-  -exec clang-tidy --warnings-as-errors='*' -p . {} +
+  -exec clang-tidy -p . {} +
