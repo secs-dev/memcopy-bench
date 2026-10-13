@@ -1,0 +1,8 @@
+# https://registry.bazel.build/modules/rules_cc
+bazel_dep(name = "rules_cc", version = "0.2.26")
+
+# https://registry.bazel.build/modules/googletest
+bazel_dep(name = "googletest", version = "1.18.0.bcr.1", dev_dependency = True)
+
+# https://registry.bazel.build/modules/google_benchmark
+bazel_dep(name = "google_benchmark", version = "1.9.5")
