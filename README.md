@@ -1,34 +1,68 @@
 # memcopy-bench
-DevTools 2026 Research Project. Violet Team
 
-# Setup
+A C/C++ research framework for evaluating data movement and frame-processing
+techniques in Telecom L2 scenarios. The initial focus is PDCP and GTP-U frame
+processing on x86, while reusable library code avoids unnecessary
+architecture-specific assumptions.
 
-We use [Bazel](https://bazel.build/install) to build, run and test our project.
-The Bazel version is pinned in `src/.bazelversion`, use
-[Bazelisk](https://github.com/bazelbuild/bazelisk) to get the right one.
+## Layout
 
-All commands below are run from `src/`:
+- `lib/` — reusable frame, memory, transport, and scenario implementations.
+  Libraries do not depend on benchmarking or reporting infrastructure.
+- `benchmarks/` — Google Benchmark executables. `memory/` holds operation
+  microbenchmarks; `scenarios/` will hold complete workflow benchmarks.
+- `tests/` — integration and cross-component tests. Unit tests are colocated
+  with the library code they verify.
+- `tools/` — experiment automation and analysis utilities.
+- `results/` — raw benchmark output and experiment metadata (kept separate
+  from analysis).
+- `reports/` — research findings and comparative analysis.
+
+## Prerequisites
+
+Install [Bazelisk](https://github.com/bazelbuild/bazelisk). It selects the
+Bazel version pinned in `.bazelversion`. Commands are run from the repository
+root. Optimized mode is enabled by default in `.bazelrc`.
+
+## Build and test
+
 ```bash
-cd src/
+bazel build //...
+bazel test //...
 ```
 
-Optimized build mode (`-c opt`) is enabled by default in `src/.bazelrc`.
+For example, the initial reusable algorithm and its colocated test are:
 
-**Build:**
 ```bash
-bazel build //lib:memcpy_bench # build benchmark lib only
-bazel build //main:main # build main binary and library
+bazel build //lib/memory:memcpy
+bazel test //lib/memory:memcpy_test
 ```
 
-**Test:**
+## Run a benchmark
+
 ```bash
-bazel test //test:memcpy_bench_test
+bazel run //benchmarks/memory:memcpy_benchmark
+
+# Google Benchmark options follow `--`.
+bazel run //benchmarks/memory:memcpy_benchmark -- \
+  --benchmark_filter='BM_Memcpy/4096' \
+  --benchmark_format=json \
+  --benchmark_out=results/memcpy-4096.json
 ```
 
-**Run benchmarks:**
-```bash
-bazel run //main:main
+Store the matching experiment metadata (scenario, algorithm, input size,
+compiler configuration, CPU information, and source revision) alongside raw
+output in `results/`. Use `reports/` for the derived analysis.
 
-# Google Benchmark flags are passed after `--`
-bazel run //main:main -- --benchmark_filter='BM_Memcpy/4096' --benchmark_format=json
-```
+## Development workflow
+
+1. Add an algorithm or explicit frame-processing scenario under `lib/`.
+2. Add colocated functional tests and run `bazel test`.
+3. Add or extend the corresponding executable under `benchmarks/`.
+4. Run controlled experiments and record raw measurements plus metadata in
+   `results/`.
+5. Analyze results in `reports/`.
+
+A scenario describes *what* happens to a frame; algorithms describe *how* an
+individual operation is performed. Keep those concerns separate so algorithms
+can be compared across independent research cases.

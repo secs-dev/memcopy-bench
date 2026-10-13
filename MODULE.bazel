@@ -1,0 +1,8 @@
+# C/C++ rules for the reusable frame-processing libraries and executables.
+bazel_dep(name = "rules_cc", version = "0.2.26")
+
+# Test-only dependency; production libraries in lib/ do not depend on it.
+bazel_dep(name = "googletest", version = "1.18.0.bcr.1", dev_dependency = True)
+
+# Benchmark executables depend on this package, never libraries in lib/.
+bazel_dep(name = "google_benchmark", version = "1.9.5")

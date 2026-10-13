@@ -12,11 +12,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        # MODULE.bazel and .bazelversion live in src/
-        working-directory: src
-
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
@@ -25,7 +20,7 @@ jobs:
           bazelisk-cache: true
           disk-cache: ${{ github.workflow }}
           repository-cache: true
-          # Pull requests only restore caches, pushes to main refresh them
+          # Pull requests only restore caches, pushes to main refresh them.
           cache-save: ${{ github.event_name == 'push' }}
           bazelrc: |
             common --announce_rc

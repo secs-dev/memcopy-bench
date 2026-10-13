@@ -1,0 +1,10 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+
+cc_binary(
+    name = "memcpy_benchmark",
+    srcs = ["memcpy_benchmark.cc"],
+    deps = [
+        "//lib/memory:memcpy",
+        "@google_benchmark//:benchmark_main",
+    ],
+)

@@ -1,0 +1,2 @@
+# Performance measurements should use optimized builds by default.
+build -c opt
