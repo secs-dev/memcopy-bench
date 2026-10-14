@@ -1,0 +1,12 @@
+# Bazel
+*~
+bazel-*
+*MODULE.bazel.lock
+/.ijwb/
+/.aswb/
+/.clwb/
+
+# IDEs
+.idea
+.vscode
+.vs
