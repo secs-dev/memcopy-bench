@@ -87,7 +87,8 @@ inline void *copy_duff(void *dest, const void *src, size_t len) {
 }
 
 /**
- * 64-bit scalar word copy with byte-level scalar tail.
+ * 64-bit scalar word copy with byte-level scalar tail. (copy by 8 bytes is
+ * possible, then by byte)
  */
 inline void *copy_words64(void *dest, const void *src, size_t len) {
   auto *d = static_cast<uint8_t *>(dest);
@@ -143,14 +144,15 @@ inline void *copy_words64_unrolled4(void *dest, const void *src, size_t len) {
 }
 
 /**
- * Branchless head-and-tail overlapping copy for small payloads (<= 16 bytes).
+ * Head-and-tail overlapping copy for small payloads (<= 16 bytes).
  * Employs two overlapping loads/stores to avoid tail branches.
  */
 inline void *copy_small_overlapping(void *dest, const void *src, size_t len) {
   auto *d = static_cast<uint8_t *>(dest);
   const auto *s = static_cast<const uint8_t *>(src);
-  if (len == 0)
+  if (len == 0) {
     return dest;
+  }
   if (len == 1) {
     *d = *s;
     return dest;
@@ -186,7 +188,8 @@ inline void *copy_small_overlapping(void *dest, const void *src, size_t len) {
 
 /**
  * x86 Enhanced REP MOVSB (ERMS / FSRM).
- * Handled directly by CPU microcode.
+ * Handled directly by CPU microcode. (Basically moving the loop logic to
+ * microcode).
  */
 inline void *copy_rep_movsb(void *dest, const void *src, size_t len) {
   void *orig_dest = dest;
@@ -211,7 +214,8 @@ inline void *copy_rep_movsq(void *dest, const void *src, size_t len) {
 }
 
 /**
- * SSE2 128-bit unaligned vector copy unrolled 4x (64 bytes/iter).
+ * SSE2 128-bit unaligned vector copy unrolled 4x (64 bytes/iter). SSE2 exists
+ * on any x86 (AMD included)
  */
 inline void *copy_sse2(void *dest, const void *src, size_t len) {
   auto *d = static_cast<uint8_t *>(dest);
@@ -334,6 +338,7 @@ inline void *copy_avx2_stream(void *dest, const void *src, size_t len) {
 
 /**
  * AVX2 vector copy with software prefetching (PREFETCHT0).
+ HINT_T0 prefetches up to L1 cache
  */
 #if defined(__GNUC__) || defined(__clang__)
 __attribute__((target("avx2")))
