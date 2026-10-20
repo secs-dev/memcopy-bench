@@ -39,68 +39,38 @@ inline void* CopyNaiveWrapper(void* d, const void* s, std::size_t n) {
   return memory_bench::copy_naive(d, s, n);
 }
 
-}  // namespace
+} // namespace
 
-BENCHMARK(BM_Copy<memcopy_bench::memory::CopyWithMemcpy>)
-    ->Name("BM_Memcpy")
+template <auto Fn>
+void RegisterBMCopy(const char *name)
+{
+  benchmark::RegisterBenchmark(name, BM_Copy<Fn>)
     ->RangeMultiplier(4)
     ->Range(64, 64 << 20);
+}
 
-BENCHMARK(BM_Copy<CopyNaiveWrapper>)
-    ->Name("BM_CopyNaive")
-    ->RangeMultiplier(4)
-    ->Range(64, 64 << 20);
-
-BENCHMARK(BM_Copy<memory_bench::copy_duff>)
-    ->Name("BM_CopyDuff")
-    ->RangeMultiplier(4)
-    ->Range(64, 64 << 20);
-
-BENCHMARK(BM_Copy<memory_bench::copy_words64>)
-    ->Name("BM_CopyWords64")
-    ->RangeMultiplier(4)
-    ->Range(64, 64 << 20);
-
-BENCHMARK(BM_Copy<memory_bench::copy_words64_unrolled4>)
-    ->Name("BM_CopyWords64Unrolled4")
-    ->RangeMultiplier(4)
-    ->Range(64, 64 << 20);
-
-BENCHMARK(BM_Copy<memory_bench::copy_small_overlapping>)
-    ->Name("BM_CopySmallOverlapping")
-    ->RangeMultiplier(4)
-    ->Range(64, 64 << 20);
+static const bool Registered = []
+{
+  RegisterBMCopy<memcopy_bench::memory::CopyWithMemcpy>("BM_Memcpy");
+  RegisterBMCopy<CopyNaiveWrapper>("BM_CopyNaive");
+  RegisterBMCopy<memory_bench::copy_duff>("BM_CopyDuff");
+  RegisterBMCopy<memory_bench::copy_words64>("BM_CopyWords64");
+  RegisterBMCopy<memory_bench::copy_words64_unrolled4>("BM_CopyWords64Unrolled4");
+  RegisterBMCopy<memory_bench::copy_small_overlapping>("BM_CopySmallOverlapping");
+  return true;
+}();
 
 #if defined(__x86_64__) || defined(_M_X64)
-BENCHMARK(BM_Copy<memory_bench::copy_rep_movsb>)
-    ->Name("BM_CopyRepMovsb")
-    ->RangeMultiplier(4)
-    ->Range(64, 64 << 20);
-
-BENCHMARK(BM_Copy<memory_bench::copy_rep_movsq>)
-    ->Name("BM_CopyRepMovsq")
-    ->RangeMultiplier(4)
-    ->Range(64, 64 << 20);
-
-BENCHMARK(BM_Copy<memory_bench::copy_sse2>)
-    ->Name("BM_CopySSE2")
-    ->RangeMultiplier(4)
-    ->Range(64, 64 << 20);
-
-BENCHMARK(BM_Copy<memory_bench::copy_avx2>)
-    ->Name("BM_CopyAVX2")
-    ->RangeMultiplier(4)
-    ->Range(64, 64 << 20);
-
-BENCHMARK(BM_Copy<memory_bench::copy_avx2_stream>)
-    ->Name("BM_CopyAVX2Stream")
-    ->RangeMultiplier(4)
-    ->Range(64, 64 << 20);
-
-BENCHMARK(BM_Copy<memory_bench::copy_avx2_prefetch>)
-    ->Name("BM_CopyAVX2Prefetch")
-    ->RangeMultiplier(4)
-    ->Range(64, 64 << 20);
+static const bool x86Registered = []
+{
+  RegisterBMCopy<memory_bench::copy_rep_movsb>("BM_CopyRepMovsb");
+  RegisterBMCopy<memory_bench::copy_rep_movsq>("BM_CopyRepMovsq");
+  RegisterBMCopy<memory_bench::copy_sse2>("BM_CopySSE2");
+  RegisterBMCopy<memory_bench::copy_avx2>("BM_CopyAVX2");
+  RegisterBMCopy<memory_bench::copy_avx2_stream>("BM_CopyAVX2Stream");
+  RegisterBMCopy<memory_bench::copy_avx2_prefetch>("BM_CopyAVX2Prefetch");
+  return true;
+}();
 #endif
 
 BENCHMARK_MAIN();
