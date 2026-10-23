@@ -1,4 +1,4 @@
-name: Bazel
+name: CI
 
 on:
   pull_request:
@@ -7,15 +7,20 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        # MODULE.bazel and .bazelversion live in src/
-        working-directory: src
+  lint:
+    name: Lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -23,19 +28,62 @@ jobs:
       - uses: bazel-contrib/setup-bazel@c5acdfb288317d0b5c0bbd7a396a3dc868bb0f86 # 0.19.0
         with:
           bazelisk-cache: true
-          disk-cache: ${{ github.workflow }}
+          disk-cache: ${{ github.workflow }}-${{ github.job }}
           repository-cache: true
-          # Pull requests only restore caches, pushes to main refresh them
           cache-save: ${{ github.event_name == 'push' }}
-          bazelrc: |
-            common --announce_rc
-            common --color=yes
 
-      - name: Bazel version
-        run: bazel version
+      - name: Install clang-tidy
+        run: sudo apt-get update && sudo apt-get install --yes clang-tidy
+
+      - name: Lint C++ sources
+        run: sh tools/run-clang-tidy.sh
+
+  build-and-test:
+    name: Build and test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - uses: bazel-contrib/setup-bazel@c5acdfb288317d0b5c0bbd7a396a3dc868bb0f86 # 0.19.0
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}-${{ github.job }}
+          repository-cache: true
+          cache-save: ${{ github.event_name == 'push' }}
 
       - name: Build
-        run: bazel build //...
+        run: bazel build --config=ci //...
 
       - name: Test
-        run: bazel test //... --test_output=errors
+        run: bazel test --config=ci //...
+
+  sanitizers:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: AddressSanitizer
+            config: asan
+          - name: UndefinedBehaviorSanitizer
+            config: ubsan
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - uses: bazel-contrib/setup-bazel@c5acdfb288317d0b5c0bbd7a396a3dc868bb0f86 # 0.19.0
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}-${{ github.job }}-${{ matrix.config }}
+          repository-cache: true
+          cache-save: ${{ github.event_name == 'push' }}
+
+      - name: Build
+        run: bazel build --config=ci --config=${{ matrix.config }} //...
+
+      - name: Test
+        run: bazel test --config=ci --config=${{ matrix.config }} //...

@@ -1,0 +1,19 @@
+# C/C++ rules for the reusable frame-processing libraries and executables.
+bazel_dep(name = "rules_cc", version = "0.2.26")
+
+# Test-only dependency; production libraries in lib/ do not depend on it.
+bazel_dep(name = "googletest", version = "1.18.0.bcr.1", dev_dependency = True)
+
+# Benchmark executables depend on this package, never libraries in lib/.
+bazel_dep(name = "google_benchmark", version = "1.9.5")
+
+# Generates compile_commands.json for clangd and clang-tidy. This is a
+# development-only tool and is not part of production or benchmark targets.
+# The pinned revision is the upstream Bazel 9 compatibility patch (PR #281),
+# pending its merge into the canonical repository.
+bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
+git_override(
+    module_name = "hedron_compile_commands",
+    remote = "https://github.com/ultimateanu/bazel-compile-commands-extractor.git",
+    commit = "2dc498f24587eccc2752f8a892da004d9baa8318",
+)

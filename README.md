@@ -1,34 +1,96 @@
 # memcopy-bench
-DevTools 2026 Research Project. Violet Team
 
-# Setup
+A C/C++ research framework for evaluating data movement and frame-processing
+techniques in Telecom L2 scenarios. The initial focus is PDCP and GTP-U frame
+processing on x86, while reusable library code avoids unnecessary
+architecture-specific assumptions.
 
-We use [Bazel](https://bazel.build/install) to build, run and test our project.
-The Bazel version is pinned in `src/.bazelversion`, use
-[Bazelisk](https://github.com/bazelbuild/bazelisk) to get the right one.
+## Layout
 
-All commands below are run from `src/`:
+- `lib/` — reusable frame, memory, transport, and scenario implementations.
+  Libraries do not depend on benchmarking or reporting infrastructure.
+  `lib/test/` is reserved for shared test-only support; component unit tests
+  remain colocated with their implementations.
+- `benchmarks/` — Google Benchmark executables. `memory/` holds operation
+  microbenchmarks; `scenarios/` will hold complete workflow benchmarks.
+- `tests/integration/` — reserved for cross-component integration tests when
+  they are needed. Unit tests are colocated with the library code they verify.
+- `tools/` — experiment automation and analysis utilities.
+- `results/` — raw benchmark output and experiment metadata (kept separate
+  from analysis).
+- `reports/` — research findings and comparative analysis.
+
+## Prerequisites
+
+Install [Bazelisk](https://github.com/bazelbuild/bazelisk). It selects the
+Bazel version pinned in `.bazelversion`. Commands are run from the repository
+root. Optimized mode is enabled by default in `.bazelrc`.
+
+## C++ editor tooling
+
+Generate Bazel-aware compile commands for `clangd` and `clang-tidy` after
+changing C++ sources, targets, dependencies, or compile settings:
+
 ```bash
-cd src/
+bazel run @hedron_compile_commands//:refresh_all
 ```
 
-Optimized build mode (`-c opt`) is enabled by default in `src/.bazelrc`.
+The generated root-level `compile_commands.json` is intentionally ignored by
+Git. Restart the editor language server after refreshing it if it does not
+reload the database automatically.
 
-**Build:**
+## Build, lint, and test
+
 ```bash
-bazel build //lib:memcpy_bench # build benchmark lib only
-bazel build //main:main # build main binary and library
+bazel build //...
+bazel test //...
 ```
 
-**Test:**
+Run the same C++ lint check used by CI (requires `clang-tidy` on `PATH`):
+
 ```bash
-bazel test //test:memcpy_bench_test
+sh tools/run-clang-tidy.sh
 ```
 
-**Run benchmarks:**
-```bash
-bazel run //main:main
+Run tests with the supported sanitizers:
 
-# Google Benchmark flags are passed after `--`
-bazel run //main:main -- --benchmark_filter='BM_Memcpy/4096' --benchmark_format=json
+```bash
+bazel test --config=asan //... --test_output=errors
+bazel test --config=ubsan //... --test_output=errors
 ```
+
+For example, the initial reusable algorithm and its colocated test are:
+
+```bash
+bazel build //lib/memory:memcpy
+bazel test //lib/memory:memcpy_test
+```
+
+## Run a benchmark
+
+```bash
+bazel run //benchmarks/memory:memcpy_benchmark
+
+# Google Benchmark options follow `--`.
+bazel run //benchmarks/memory:memcpy_benchmark -- \
+  --benchmark_filter='BM_Memcpy/4096' \
+  --benchmark_format=json \
+  --benchmark_out=results/memcpy-4096.json
+```
+
+Store the matching experiment metadata (scenario, algorithm, input size,
+compiler configuration, CPU information, and source revision) alongside raw
+output in `results/`. Use `reports/` for the derived analysis.
+
+## Development workflow
+
+1. Add an algorithm or explicit frame-processing scenario under `lib/`.
+2. Add colocated functional tests and run `bazel test`.
+3. Add or extend the corresponding executable under `benchmarks/`.
+4. Run controlled experiments and record raw measurements plus metadata in
+   `results/`.
+5. Analyze results in `reports/`.
+
+A scenario describes *what* happens to a frame; algorithms describe *how* an
+individual operation is performed. Keep those concerns separate so algorithms
+can be compared across independent research cases.

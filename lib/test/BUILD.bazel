@@ -1,0 +1,4 @@
+# Shared test-only targets (fixtures, frame builders, and correctness helpers)
+# for lib/ packages belong here. Component unit tests remain colocated with
+# their implementations.
+package(default_testonly = True)

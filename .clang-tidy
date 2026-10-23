@@ -1,0 +1,13 @@
+---
+# Apply the clang-tidy checks that enforce the Google C++ Style Guide.
+Checks: 'google-*'
+
+# Format any clang-tidy fix-its with the corresponding clang-format style.
+FormatStyle: Google
+
+# Analyze project headers without reporting diagnostics from external modules.
+HeaderFilterRegex: '(^|.*/)(lib|benchmarks)/.*'
+
+# Treat all configured diagnostics as errors by default.
+WarningsAsErrors: '*'
+...

@@ -1,0 +1,22 @@
+# Performance measurements should use optimized builds by default.
+build -c opt
+
+# Keep CI logs readable and include failed test output.
+common:ci --announce_rc
+common:ci --color=yes
+common:ci --curses=no
+test:ci --test_output=errors
+
+# Instrument test binaries and their C/C++ dependencies for memory errors.
+build:asan -c dbg
+build:asan --copt=-fsanitize=address
+build:asan --copt=-fno-omit-frame-pointer
+build:asan --linkopt=-fsanitize=address
+test:asan --test_env=ASAN_OPTIONS=detect_leaks=1:halt_on_error=1
+
+# Instrument test binaries and their C/C++ dependencies for undefined behavior.
+build:ubsan -c dbg
+build:ubsan --copt=-fsanitize=undefined
+build:ubsan --copt=-fno-omit-frame-pointer
+build:ubsan --linkopt=-fsanitize=undefined
+test:ubsan --test_env=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
