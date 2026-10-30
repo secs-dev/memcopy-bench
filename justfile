@@ -26,6 +26,14 @@ check: lint test sanitizers
 bench filter="":
     bazel run //benchmarks/memory:memcpy_benchmark -- {{ if filter != "" { "--benchmark_filter=" + filter } else { "" } }}
 
+# Generate interactive Plotly charts from benchmark results
+plot input="results/all_methods_benchmark.json" output="reports":
+    @if [ -f "plot/.venv/bin/python3" ]; then \
+        plot/.venv/bin/python3 plot/plot.py {{ input }} {{ output }}; \
+    else \
+        python3 plot/plot.py {{ input }} {{ output }}; \
+    fi
+
 # Refresh compile_commands.json for clangd and IDE completion
 compile-commands:
     bazel run @hedron_compile_commands//:refresh_all
