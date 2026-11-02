@@ -11,3 +11,10 @@ compile_commands.json
 .idea
 .vscode
 .vs
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+plot/.venv/
