@@ -70,17 +70,13 @@ const std::pair<const char*, CopyFn> kImplementations[] = {
 
 INSTANTIATE_TEST_SUITE_P(CopyTests, CopyImplementationsTest, ::testing::ValuesIn(kImplementations));
 
-TEST(CompileTimeCopyTest, TemplateNaiveAndFixed) {
+TEST(CompileTimeCopyTest, TemplateNaive) {
   constexpr std::size_t kSize = 16;
   std::uint8_t src[kSize] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
   std::uint8_t dst1[kSize] = {0};
-  std::uint8_t dst2[kSize] = {0};
-
-  copy_naive<kSize>(dst1, src);
+  copy_naive(dst1, src, kSize);
   EXPECT_EQ(std::memcmp(dst1, src, kSize), 0);
 
-  copy_fixed<kSize>(dst2, src);
-  EXPECT_EQ(std::memcmp(dst2, src, kSize), 0);
 }
 
 }  // namespace
