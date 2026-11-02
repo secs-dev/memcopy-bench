@@ -1,5 +1,6 @@
 # Performance measurements should use optimized builds by default.
 build -c opt
+build --copt=-O3
 
 # Keep CI logs readable and include failed test output.
 common:ci --announce_rc

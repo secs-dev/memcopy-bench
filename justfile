@@ -22,9 +22,11 @@ lint:
 # Run complete local verification (format, lint, tests, and sanitizers)
 check: lint test sanitizers
 
-# Run benchmarks (optional filter argument: `just bench BM_Memcpy`)
-bench filter="":
-    bazel run //benchmarks/memory:memcpy_benchmark -- {{ if filter != "" { "--benchmark_filter=" + filter } else { "" } }}
+# Run benchmarks (optional filter argument: `just bench BM_Memcpy` or `just bench "" results/my_bench.json`)
+bench filter="" out="":
+    bazel run //benchmarks/memory:memcpy_benchmark -- \
+        {{ if filter != "" { "--benchmark_filter=" + filter } else { "" } }} \
+        {{ if out != "" { "--benchmark_format=json --benchmark_out=$PWD/" + out } else { "" } }}
 
 # Generate interactive Plotly charts from benchmark results
 plot input="results/all_methods_benchmark.json" output="reports":
@@ -33,6 +35,11 @@ plot input="results/all_methods_benchmark.json" output="reports":
     else \
         python3 plot/plot.py {{ input }} {{ output }}; \
     fi
+
+# Run benchmarks and immediately build plots
+bench-plot filter="" out="results/all_methods_benchmark.json" reports="reports":
+    just bench "{{ filter }}" "{{ out }}"
+    just plot "{{ out }}" "{{ reports }}"
 
 # Refresh compile_commands.json for clangd and IDE completion
 compile-commands:

@@ -31,29 +31,6 @@ inline void *copy_naive(void *dest, const void *src, size_t len) {
 }
 
 /**
-A naive copy specialized by the <len>. I.e. we know the size of the copy
-at compile-time.
-*/
-template <size_t Len>
-inline constexpr void *copy_naive(void *dest, const void *src) {
-  auto *dest_b = static_cast<uint8_t *>(dest);
-  const auto *src_b = static_cast<const uint8_t *>(src);
-  auto len = Len;
-  while (len--) {
-    *dest_b++ = *src_b++;
-  }
-  return dest;
-}
-
-/**
- * Fixed-size copy delegating to std::memcpy, which compilers inline
- * into optimal register-width move instructions for compile-time sizes.
- */
-template <size_t Len> inline void *copy_fixed(void *dest, const void *src) {
-  return std::memcpy(dest, src, Len);
-}
-
-/**
  * Duff's device byte-level unrolled copy.
  */
 inline void *copy_duff(void *dest, const void *src, size_t len) {

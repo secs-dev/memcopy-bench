@@ -12,6 +12,11 @@ compile_commands.json
 .vscode
 .vs
 
+# Reports and bench results
+
+reports/*.html
+results/*.json
+
 # Python
 __pycache__/
 *.py[cod]

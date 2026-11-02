@@ -72,7 +72,14 @@ bazel test //lib/memory:memcpy_test
 bazel run //benchmarks/memory:memcpy_benchmark
 
 # Google Benchmark options follow `--`.
+# Note: bazel run executes from a sandbox working directory, so use an absolute path for --benchmark_out:
 bazel run //benchmarks/memory:memcpy_benchmark -- \
+  --benchmark_filter='BM_Memcpy/4096' \
+  --benchmark_format=json \
+  --benchmark_out="$PWD/results/memcpy-4096.json"
+
+# Alternatively, run the built binary directly:
+./bazel-bin/benchmarks/memory/memcpy_benchmark \
   --benchmark_filter='BM_Memcpy/4096' \
   --benchmark_format=json \
   --benchmark_out=results/memcpy-4096.json
