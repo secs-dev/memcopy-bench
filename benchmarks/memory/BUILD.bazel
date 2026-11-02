@@ -5,6 +5,7 @@ cc_binary(
     srcs = ["memcpy_benchmark.cpp"],
     deps = [
         "//lib/memory:memcpy",
+        "//lib/memory/copy:copy",
         "@google_benchmark//:benchmark_main",
     ],
 )
