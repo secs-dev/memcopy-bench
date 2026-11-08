@@ -1,8 +1,10 @@
+#include "lib/buffers/abstract_buffer.hpp"
 #include "lib/memory/copy/copy.h"
 #include "lib/memory/memcpy.h"
 
 #include <cstddef>
 #include <cstdint>
+#include <string>
 #include <vector>
 
 #include <benchmark/benchmark.h>
@@ -49,6 +51,32 @@ template <auto CopyFn, size_t Len> void BM_CopyFixed(benchmark::State &state) {
                           static_cast<std::int64_t>(size));
 }
 
+template <auto CopyFn, std::size_t HeaderLen, std::size_t PayloadLen>
+void BM_CopyPacket(benchmark::State &state) {
+  using Packet = buffers::abstract_buffer::AbstractPacket<HeaderLen, PayloadLen>;
+  typename Packet::AbstractHeader header;
+  const std::vector<std::byte> source = MakeInput(HeaderLen + PayloadLen);
+  std::vector<std::byte> destination(PayloadLen);
+
+  for (auto _ : state) {
+    const auto *payload =
+        Packet::stripHeader(source.data(), source.size(), header);
+
+    if (payload == nullptr) {
+      state.SkipWithError("Failed to strip the packet header");
+      return;
+    }
+
+    CopyFn(destination.data(), payload, PayloadLen);
+    benchmark::DoNotOptimize(header);
+    benchmark::DoNotOptimize(destination.data());
+    benchmark::ClobberMemory();
+  }
+
+  state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) *
+                          static_cast<std::int64_t>(HeaderLen + PayloadLen));
+}
+
 inline void *CopyNaiveWrapper(void *d, const void *s, std::size_t n) {
   return memory_bench::copy_naive(d, s, n);
 }
@@ -74,6 +102,16 @@ template <auto Fn> void RegisterAllBMCopyFixed(const char *name) {
   RegisterBMCopyFixed<Fn, 64, 64 << 20, 4>(name);
 }
 
+template <auto Fn, std::size_t HeaderLen, std::size_t... PayloadLens>
+void RegisterBMCopyPacket(const char *name) {
+  const std::string prefix =
+      std::string(name) + "/" + std::to_string(HeaderLen) + "/";
+  (benchmark::RegisterBenchmark(
+       (prefix + std::to_string(PayloadLens)).c_str(),
+       BM_CopyPacket<Fn, HeaderLen, PayloadLens>),
+   ...);
+}
+
 static const bool Registered = [] {
   RegisterBMCopy<memcopy_bench::memory::CopyWithMemcpy>("BM_Memcpy");
   RegisterBMCopy<CopyNaiveWrapper>("BM_CopyNaive");
@@ -96,6 +134,14 @@ static const bool RegisteredFixed = [] {
       "BM_CopyWords64Unrolled4_Fixed");
   RegisterAllBMCopyFixed<memory_bench::copy_small_overlapping>(
       "BM_CopySmallOverlapping_Fixed");
+  return true;
+}();
+
+static const bool RegisteredFixedPackets = [] {
+    RegisterBMCopyPacket<memcopy_bench::memory::CopyWithMemcpy, 16, 64, 512, 1500>(
+      "BM_CopyPacket_Memcpy");
+    RegisterBMCopyPacket<CopyNaiveWrapper, 16, 64, 512, 1500>(
+      "BM_CopyPacket_Naive");
   return true;
 }();
 
