@@ -1,0 +1,18 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+cc_library(
+    name = "abstract",
+    hdrs = ["abstract_buffer.hpp"],
+    visibility = ["//visibility:public"],
+)
+
+cc_test(
+    name = "buffers_test",
+    size = "small",
+    srcs = ["buffers_test.cpp"],
+    deps = [
+        ":abstract",
+        "@googletest//:gtest_main",
+    ],
+)
