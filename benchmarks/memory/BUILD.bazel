@@ -6,6 +6,7 @@ cc_binary(
     deps = [
         "//lib/memory:memcpy",
         "//lib/memory/copy:copy",
+        "//lib/buffers:abstract",
         "@google_benchmark//:benchmark_main",
     ],
 )
