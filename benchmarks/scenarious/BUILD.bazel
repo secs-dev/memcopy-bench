@@ -1,0 +1,14 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_binary(
+    name = "packet_scenario_benchmark",
+    srcs = ["packet_scenario_benchmark.cpp"],
+    deps = [
+        "//lib/buffers:abstract",
+        "//lib/memory/copy:copy",
+        "//lib/scenarious:scenarios",
+        "@google_benchmark//:benchmark",
+    ],
+)
