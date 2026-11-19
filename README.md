@@ -20,11 +20,57 @@ architecture-specific assumptions.
   from analysis).
 - `reports/` — research findings and comparative analysis.
 
-## Prerequisites
+## Development environment
 
-Install [Bazelisk](https://github.com/bazelbuild/bazelisk). It selects the
-Bazel version pinned in `.bazelversion`. Commands are run from the repository
-root. Optimized mode is enabled by default in `.bazelrc`.
+Nix support is optional. The Bazel project and its configuration do not depend
+on Nix, so use whichever setup suits your platform and workflow. Commands are
+run from the repository root. Optimized mode is enabled by default in
+`.bazelrc`.
+
+### With Nix
+
+Install [Nix](https://nixos.org/download/) with flakes enabled, then enter the
+pinned development shell:
+
+```bash
+nix develop
+bazel build //...
+bazel test //...
+```
+
+The shell supports `x86_64-linux`, `x86_64-darwin` (Intel macOS), and
+`aarch64-darwin` (Apple Silicon). It provides Bazelisk, Clang/LLVM,
+`clangd`, `clang-format`, `clang-tidy`, Buildifier, and common build tools.
+The `bazel` command in this shell is a wrapper around Bazelisk that passes
+`--repo_env=CC=clang --repo_env=CXX=clang++`. This makes Bazel's local C++
+toolchain configuration select the Nix-provided Clang; exported `CC` and
+`CXX` alone are not sufficient to guarantee that Bazel does so.
+
+To enter the shell automatically when changing into the repository, optionally
+use [direnv](https://direnv.net/). After enabling direnv in your shell, create
+a local `.envrc` containing `use flake` and run `direnv allow`. `.envrc` is a
+local convenience file and should not be committed unless the project chooses
+to standardize it.
+
+### Without Nix
+
+Install [Bazelisk](https://github.com/bazelbuild/bazelisk), which selects the
+Bazel version pinned in `.bazelversion`. Also install a C++17-capable compiler
+(such as Clang or GCC); install Clang/LLVM tools including `clangd`,
+`clang-format`, and `clang-tidy` for editor tooling and linting; and install
+[Buildifier](https://github.com/bazelbuild/buildtools) when formatting Bazel
+files. Then use the same commands:
+
+```bash
+bazel build //...
+bazel test //...
+```
+
+Nix improves the developer experience without replacing this path: pinned tool
+versions provide reproducible development environments, easier onboarding, and
+controlled toolchain updates. It does not make results identical everywhere:
+platform-specific toolchains, CPU architectures, and benchmark measurements
+may still differ between machines.
 
 ## C++ editor tooling
 
