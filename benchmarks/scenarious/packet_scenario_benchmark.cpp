@@ -75,11 +75,22 @@ template <class Scenario> void RegisterScenarioBothH(const char *name) {
 
 // Scenario whitelist. Extend as new combinations are studied. Each entry adds
 // |H| * |P| benchmarks.
+using Naive = sc::SimpleScenario<memory_bench::copy_naive>;
 using Baseline = sc::SimpleScenario<memory_bench::copy_memcpy>;
 using Small = sc::SimpleScenario<memory_bench::copy_small_overlapping>;
 using Words64 = sc::SimpleScenario<memory_bench::copy_words64>;
 
 #if defined(__x86_64__) || defined(_M_X64)
+using SSE2 = sc::SimpleScenario<memory_bench::copy_sse2>;
+using Prefetch = sc::AVX2PrefetchAbove<1024>;
+using Stream = sc::SimpleScenario<memory_bench::copy_avx2_stream>;
+using MemcpyEdgesSSEBody = sc::AlignTarget<Baseline, SSE2, Baseline, 16>;
+using MemcpyEdgesAVXBody = sc::AlignTarget<Baseline, Prefetch, Baseline, 32>;
+using SSEEdgesMemcpyBody = sc::AlignTarget<SSE2, Baseline, SSE2, 16>;
+using AVXEdgesMemcpyBody = sc::AlignTarget<Prefetch, Baseline, Prefetch, 32>;
+using ComposedPrefetch = sc::ShortFallback<Baseline, 256, sc::AlignTarget<Baseline, Prefetch, Baseline, 32>>;
+using ComposedStream = sc::ShortFallback<Baseline, 256, sc::AlignTarget<Baseline, Stream, Baseline, 32>>;
+using ComposedSSE = sc::ShortFallback<Baseline, 64, sc::AlignTarget<Baseline, SSE2, Baseline, 16>>;
 using ComposedPrefetch =
     sc::ShortFallback<Small, 64,
                       sc::AlignTarget<Small, sc::AVX2PrefetchAbove<1024>, Small,
@@ -89,17 +100,26 @@ using ComposedPrefetch =
 } // namespace
 
 static const bool RegisteredScenarios = [] {
+  RegisterScenarioBothH<Naive>("Naive");
   RegisterScenarioBothH<Baseline>("Memcpy");
   RegisterScenarioBothH<Small>("Small");
   RegisterScenarioBothH<Words64>("Words64");
 
-#if defined(__x86_64__) && (defined(__GNUC__) || defined(__clang__))
+#if ((defined(__x86_64__) || defined(_M_X64)) && (defined(__GNUC__) || defined(__clang__)))
   // Safety guard only. The full CPU feature registry (with "skipped" records in
   // the report) is a separate follow-up. Without this check, running on a host
   // that lacks AVX2 would SIGILL inside AVX2PrefetchAbove.
   if (__builtin_cpu_supports("avx2")) {
     RegisterScenarioBothH<ComposedPrefetch>("ComposedPrefetch");
-  }
+    RegisterScenarioBothH<ComposedStream>("ComposedStream");
+    RegisterScenarioBothH<MemcpyEdgesAVXBody>("MemcpyEdgesAVXBody");
+    RegisterScenarioBothH<AVXEdgesMemcpyBody>("AVXEdgesMemcpyBody");
+}
+  if (__builtin_cpu_supports("sse2")) {
+    RegisterScenarioBothH<SSEEdgesMemcpyBody>("SSEEdgesMemcpyBody");
+    RegisterScenarioBothH<ComposedSSE>("ComposedSSE");
+    RegisterScenarioBothH<MemcpyEdgesSSEBody>("MemcpyEdgesSSEBody");
+}
 #endif
 
   return true;
