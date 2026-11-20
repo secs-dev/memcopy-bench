@@ -61,19 +61,29 @@ def add_cache_lines(fig: go.Figure, caches: list[dict]) -> None:
 
 
 def build_figure(
-    series: dict[str, dict[int, float]],
-    color_map: dict[str, str],
-    caches: list[dict],
-    title: str,
-    y_title: str,
-    y_log: bool,
+        series: dict,
+        color_map: dict,
+        caches: list[dict],
+        title: str,
+        y_title: str,
+        y_log: bool,
+        label_fn=None,
 ) -> go.Figure:
+    """Build a line plot.
+
+    ``series`` maps a key to {x: y}. Default label logic strips the BM_ / Copy
+    prefixes used by method benchmarks; callers with different key shapes can
+    pass ``label_fn`` to format labels themselves.
+    """
     fig = go.Figure()
-    for method in sorted(series):
-        sizes = sorted(series[method])
-        y = [series[method][s] for s in sizes]
-        label = method.removeprefix("BM_").removeprefix("Copy")
-        color = color_map.get(method, "#333333")
+    for key in sorted(series):
+        sizes = sorted(series[key])
+        y = [series[key][s] for s in sizes]
+        if label_fn is None:
+            label = key.removeprefix("BM_").removeprefix("Copy")
+        else:
+            label = label_fn(key)
+        color = color_map.get(key, "#333333")
         fig.add_trace(
             go.Scatter(
                 x=sizes,
@@ -102,14 +112,32 @@ def plot(input_path: str, output_target: str) -> None:
     with open(input_path, encoding="utf-8") as f:
         data = json.load(f)
 
-    # Categories: dynamic (unknown size) vs fixed (compile-time constant size)
+    # Categories: dynamic (runtime size), fixed (compile-time size),
+    # scenario (compile-time scenario composed over payload-copy methods).
     data_by_cat = {
         "dynamic": {"tp": defaultdict(dict), "time": defaultdict(dict)},
         "fixed": {"tp": defaultdict(dict), "time": defaultdict(dict)},
+        "scenario": {"tp": defaultdict(dict), "time": defaultdict(dict)},
     }
 
+    scenario_re = re.compile(r"^BM_PacketScenario/(\w+)/h(\d+)/p(\d+)$")
+
     for bm in data.get("benchmarks", []):
-        m = re.match(r"^(BM_\w+)/(\d+)", bm.get("name", ""))
+        name = bm.get("name", "")
+        tp = bm.get("bytes_per_second", 0) / 1e9  # GB/s
+        latency = bm.get("real_time", 0)  # ns
+
+        m_scn = scenario_re.match(name)
+        if m_scn:
+            scenario = m_scn.group(1)
+            header = int(m_scn.group(2))
+            payload = int(m_scn.group(3))
+            key = (scenario, header)
+            data_by_cat["scenario"]["tp"][key][payload] = tp
+            data_by_cat["scenario"]["time"][key][payload] = latency
+            continue
+
+        m = re.match(r"^(BM_\w+)/(\d+)", name)
         if not m:
             continue
         raw_method, size = m.group(1), int(m.group(2))
@@ -118,24 +146,28 @@ def plot(input_path: str, output_target: str) -> None:
 
         # Base method name without _Fixed suffix for consistent coloring
         base_method = raw_method.removesuffix("_Fixed")
-        tp = bm.get("bytes_per_second", 0) / 1e9  # GB/s
-        latency = bm.get("real_time", 0)  # ns
-
         data_by_cat[cat]["tp"][base_method][size] = tp
         data_by_cat[cat]["time"][base_method][size] = latency
 
     caches = data.get("context", {}).get("caches", [])
 
-    # Consistent color assignment across base methods
+    # Consistent color assignment within each category
     all_methods = sorted(
-        set(data_by_cat["dynamic"]["tp"].keys()) | set(data_by_cat["fixed"]["tp"].keys())
+        set(data_by_cat["dynamic"]["tp"].keys())
+        | set(data_by_cat["fixed"]["tp"].keys())
     )
-    color_map = {m: PALETTE[i % len(PALETTE)] for i, m in enumerate(all_methods)}
+    method_color = {m: PALETTE[i % len(PALETTE)] for i, m in enumerate(all_methods)}
+
+    all_scenarios = sorted({key[0] for key in data_by_cat["scenario"]["tp"]})
+    scenario_color = {
+        s: PALETTE[i % len(PALETTE)] for i, s in enumerate(all_scenarios)
+    }
 
     target = Path(output_target)
     out_dir = target.parent if target.suffix == ".html" else target
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    # --- Existing dynamic / fixed plots (unchanged behavior) ---
     configs = [
         ("dynamic", "Dynamic Size", "copy"),
         ("fixed", "Fixed Size", "copy_fixed"),
@@ -150,7 +182,7 @@ def plot(input_path: str, output_target: str) -> None:
 
         fig_tp = build_figure(
             tp_series,
-            color_map,
+            method_color,
             caches,
             f"Memory Copy Throughput vs Buffer Size ({label})",
             "Throughput (GB/s)",
@@ -158,7 +190,7 @@ def plot(input_path: str, output_target: str) -> None:
         )
         fig_time = build_figure(
             time_series,
-            color_map,
+            method_color,
             caches,
             f"Single Copy Time vs Buffer Size ({label})",
             "Time (ns)",
@@ -173,6 +205,54 @@ def plot(input_path: str, output_target: str) -> None:
 
         print(f"[{label}] Saved throughput: {tp_path}")
         print(f"[{label}] Saved copy time:  {time_path}")
+
+    # --- New scenario plots: one pair per header size ---
+    # Each key is (scenario, header). We split by header so users can compare
+    # scenarios at a fixed H; X axis is payload size.
+    scenario_tp = data_by_cat["scenario"]["tp"]
+    scenario_time = data_by_cat["scenario"]["time"]
+    if not scenario_tp:
+        return
+
+    tp_by_h: dict[int, dict] = defaultdict(dict)
+    time_by_h: dict[int, dict] = defaultdict(dict)
+    for (scenario, header), payload_map in scenario_tp.items():
+        tp_by_h[header][scenario] = payload_map
+    for (scenario, header), payload_map in scenario_time.items():
+        time_by_h[header][scenario] = payload_map
+
+    for header in sorted(tp_by_h):
+        tp_series = tp_by_h[header]
+        time_series = time_by_h[header]
+
+        fig_tp = build_figure(
+            tp_series,
+            scenario_color,
+            caches,
+            f"Packet Copy Throughput vs Payload Size "
+            f"(H={header}, processed=H+P)",
+            "Throughput (GB/s)",
+            y_log=False,
+            label_fn=lambda key: key,
+        )
+        fig_time = build_figure(
+            time_series,
+            scenario_color,
+            caches,
+            f"Packet Copy Time vs Payload Size (H={header}, processed=H+P)",
+            "Time (ns)",
+            y_log=True,
+            label_fn=lambda key: key,
+        )
+
+        tp_path = out_dir / f"packet_scenario_h{header}_throughput.html"
+        time_path = out_dir / f"packet_scenario_h{header}_time.html"
+
+        fig_tp.write_html(str(tp_path), include_plotlyjs="cdn", config={"responsive": False})
+        fig_time.write_html(str(time_path), include_plotlyjs="cdn", config={"responsive": False})
+
+        print(f"[Scenario H={header}] Saved throughput: {tp_path}")
+        print(f"[Scenario H={header}] Saved copy time:  {time_path}")
 
 
 if __name__ == "__main__":
