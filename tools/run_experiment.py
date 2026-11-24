@@ -1081,9 +1081,10 @@ def main(argv):
 
     if not args.skip_plot:
         plot_script = Path(__file__).parent.parent / "plot/plot.py"
+        run_plots_dir = run_dir / "plots"
         subprocess.run(
             [sys.executable, str(plot_script),
-             str(stats_path), args.reports_dir],
+             str(stats_path), str(run_plots_dir)],
             check=True,
         )
         if not args.skip_report:
@@ -1094,7 +1095,7 @@ def main(argv):
                            f"{safe_name or 'report'}_report.html")
             report_cmd = [
                 sys.executable, str(report_script),
-                str(stats_path), str(args.reports_dir),
+                str(stats_path), str(run_plots_dir),
                 "--output", str(report_path),
             ]
             if meta_path.exists():

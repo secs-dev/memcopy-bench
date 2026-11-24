@@ -71,9 +71,9 @@ void RegisterScenario(const char *name) {
 // (one cache line) through 32 KiB (2^15), covering L1/L2/L3 transitions.
 template <class Scenario> void RegisterScenarioBothH(const char *name) {
   RegisterScenario<Scenario, 8, 64, 128, 256, 512, 1024, 2048, 4096, 8192,
-                   16384, 32768>(name);
+                   16384, 32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33554432>(name);
   RegisterScenario<Scenario, 16, 64, 128, 256, 512, 1024, 2048, 4096, 8192,
-                   16384, 32768>(name);
+                   16384, 32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33554432>(name);
 }
 
 // Scenario whitelist. Extend as new combinations are studied. Each entry adds

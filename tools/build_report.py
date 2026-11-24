@@ -33,10 +33,73 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-PLOT_RE = re.compile(
-    r"^(?P<prefix>packet_scenario_h(?P<header>\d+)|copy(?P<fixed>_fixed)?)"
-    r"_(?P<quantity>throughput|time)"
-    r"(?:_(?P<metric>cpu|real))?\.html$")
+STATS_PLOT_RE = re.compile(
+    r"^(packet_scenario|copy)_(throughput|time)_(cpu|real)"
+    r"_(mean_std|median_percentiles)\.html$")
+LEGACY_SCENARIO_RE = re.compile(
+    r"^packet_scenario_h(\d+)_(throughput|time)(?:_(cpu|real))?\.html$")
+LEGACY_METHOD_RE = re.compile(
+    r"^copy(_fixed)?_(throughput|time)(?:_(cpu|real))?\.html$")
+
+@dataclass
+class Plot:
+    path: Path
+    category: str          # "scenario" | "dynamic" | "fixed"
+    header: int | None     # set only for legacy per-H scenario plots
+    fixed: bool
+    quantity: str
+    metric: str
+
+    @property
+    def title(self) -> str:
+        is_scenario = self.category == "scenario"
+        axis = "Payload Size" if is_scenario else "Buffer Size"
+        which = "Packet" if is_scenario else "Memory"
+        if is_scenario and self.header is not None:
+            suffix = f" (H={self.header})"
+        elif not is_scenario:
+            suffix = " (Fixed Size)" if self.fixed else " (Dynamic Size)"
+        else:
+            suffix = ""
+        return (f"{which} {QUANTITY_LABELS[self.quantity]} vs {axis}"
+                f"{suffix} [{METRIC_LABELS.get(self.metric, self.metric)}]")
+
+def classify_plot_file(path: Path) -> Plot | None:
+    name = path.name
+    m = STATS_PLOT_RE.match(name)
+    if m:
+        prefix, quantity, metric, _variant = m.groups()
+        return Plot(
+            path=path,
+            category="scenario" if prefix == "packet_scenario" else "dynamic",
+            header=None,
+            fixed=False,
+            quantity=quantity,
+            metric=metric,
+        )
+    m = LEGACY_SCENARIO_RE.match(name)
+    if m:
+        return Plot(
+            path=path,
+            category="scenario",
+            header=int(m.group(1)),
+            fixed=False,
+            quantity=m.group(2),
+            metric=m.group(3) or "real",
+        )
+    m = LEGACY_METHOD_RE.match(name)
+    if m:
+        fixed = bool(m.group(1))
+        return Plot(
+            path=path,
+            category="fixed" if fixed else "dynamic",
+            header=None,
+            fixed=fixed,
+            quantity=m.group(2),
+            metric=m.group(3) or "real",
+        )
+    return None
+
 PERCENTILE_RE = re.compile(r"^p(\d+(?:\.\d+)?)$")
 METHOD_RE = re.compile(r"^(BM_\w+)/(\d+)")
 
@@ -45,29 +108,29 @@ QUANTITY_LABELS = {"throughput": "Throughput", "time": "Copy time"}
 QUANTITY_UNITS = {"throughput": "GB/s", "time": "ns"}
 
 
-@dataclass
-class Plot:
-    path: Path
-    header: int | None
-    fixed: bool
-    quantity: str
-    metric: str
-
-    @property
-    def category(self) -> str:
-        if self.header is not None:
-            return "scenario"
-        return "fixed" if self.fixed else "dynamic"
-
-    @property
-    def title(self) -> str:
-        axis = "Payload Size" if self.header is not None else "Buffer Size"
-        which = "Packet" if self.header is not None else "Memory"
-        suffix = f" (H={self.header})" if self.header is not None else (
-            " (Fixed Size)" if self.fixed else " (Dynamic Size)")
-        return (f"{which} {QUANTITY_LABELS[self.quantity]} vs {axis}"
-                f"{suffix} [{METRIC_LABELS.get(self.metric, self.metric)}]")
-
+# @dataclass
+# class Plot:
+#     path: Path
+#     header: int | None
+#     fixed: bool
+#     quantity: str
+#     metric: str
+#
+#     @property
+#     def category(self) -> str:
+#         if self.header is not None:
+#             return "scenario"
+#         return "fixed" if self.fixed else "dynamic"
+#
+#     @property
+#     def title(self) -> str:
+#         axis = "Payload Size" if self.header is not None else "Buffer Size"
+#         which = "Packet" if self.header is not None else "Memory"
+#         suffix = f" (H={self.header})" if self.header is not None else (
+#             " (Fixed Size)" if self.fixed else " (Dynamic Size)")
+#         return (f"{which} {QUANTITY_LABELS[self.quantity]} vs {axis}"
+#                 f"{suffix} [{METRIC_LABELS.get(self.metric, self.metric)}]")
+#
 
 # --- Formatting helpers ----------------------------------------------------
 
@@ -133,18 +196,11 @@ def discover_plots(plots_dir: Path, output: Path) -> tuple[list[Plot], list[Path
     for path in sorted(plots_dir.glob("*.html")):
         if path.resolve() == output.resolve() or "report" in path.name.lower():
             continue
-        match = PLOT_RE.match(path.name)
-        if not match:
+        plot = classify_plot_file(path)
+        if plot is None:
             skipped.append(path)
             continue
-        plots.append(Plot(
-            path=path,
-            header=(int(match.group("header"))
-                    if match.group("header") else None),
-            fixed=bool(match.group("fixed")),
-            quantity=match.group("quantity"),
-            metric=match.group("metric") or "real",
-        ))
+        plots.append(plot)
     plots.sort(key=lambda p: (
         0 if p.category == "scenario" else 1,
         p.header or 0,
@@ -190,7 +246,9 @@ def plot_rows(stats: dict, plot: Plot):
     for name, entry in sorted(stats.get("benchmarks", {}).items()):
         meta = benchmark_meta(name, entry)
         if plot.category == "scenario":
-            if meta["kind"] != "scenario" or meta["header"] != plot.header:
+            if meta["kind"] != "scenario":
+                continue
+            if plot.header is not None and meta["header"] != plot.header:
                 continue
         elif meta["kind"] != plot.category:
             continue
