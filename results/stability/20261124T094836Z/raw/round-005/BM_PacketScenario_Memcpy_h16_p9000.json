@@ -1,0 +1,152 @@
+{
+  "context": {
+    "date": "2026-11-24T12:58:31+03:00",
+    "host_name": "Vostro-3590",
+    "executable": "bazel-bin/benchmarks/scenarious/packet_scenario_benchmark",
+    "num_cpus": 8,
+    "mhz_per_cpu": 4200,
+    "cpu_scaling_enabled": true,
+    "aslr_enabled": false,
+    "caches": [
+      {
+        "type": "Data",
+        "level": 1,
+        "size": 32768,
+        "num_sharing": 2
+      },
+      {
+        "type": "Instruction",
+        "level": 1,
+        "size": 32768,
+        "num_sharing": 2
+      },
+      {
+        "type": "Unified",
+        "level": 2,
+        "size": 262144,
+        "num_sharing": 2
+      },
+      {
+        "type": "Unified",
+        "level": 3,
+        "size": 6291456,
+        "num_sharing": 8
+      }
+    ],
+    "load_avg": [1.38135,2.02832,3.86719],
+    "library_version": "1.9.5",
+    "library_build_type": "release",
+    "json_schema_version": 1
+  },
+  "benchmarks": [
+    {
+      "name": "BM_PacketScenario/Memcpy/h16/p9000",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PacketScenario/Memcpy/h16/p9000",
+      "run_type": "iteration",
+      "repetitions": 3,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 4671943,
+      "real_time": 3.0237151996578632e+02,
+      "cpu_time": 3.0220528247026988e+02,
+      "time_unit": "ns",
+      "bytes_per_second": 2.9834025157673973e+10
+    },
+    {
+      "name": "BM_PacketScenario/Memcpy/h16/p9000",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PacketScenario/Memcpy/h16/p9000",
+      "run_type": "iteration",
+      "repetitions": 3,
+      "repetition_index": 1,
+      "threads": 1,
+      "iterations": 4671943,
+      "real_time": 2.2772324223065363e+02,
+      "cpu_time": 2.2753946227511764e+02,
+      "time_unit": "ns",
+      "bytes_per_second": 3.9623896047968887e+10
+    },
+    {
+      "name": "BM_PacketScenario/Memcpy/h16/p9000",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PacketScenario/Memcpy/h16/p9000",
+      "run_type": "iteration",
+      "repetitions": 3,
+      "repetition_index": 2,
+      "threads": 1,
+      "iterations": 4671943,
+      "real_time": 2.2733157165706049e+02,
+      "cpu_time": 2.2708853382843068e+02,
+      "time_unit": "ns",
+      "bytes_per_second": 3.9702576999381851e+10
+    },
+    {
+      "name": "BM_PacketScenario/Memcpy/h16/p9000_mean",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PacketScenario/Memcpy/h16/p9000",
+      "run_type": "aggregate",
+      "repetitions": 3,
+      "threads": 1,
+      "aggregate_name": "mean",
+      "aggregate_unit": "time",
+      "iterations": 3,
+      "real_time": 2.5247544461783346e+02,
+      "cpu_time": 2.5227775952460604e+02,
+      "time_unit": "ns",
+      "bytes_per_second": 3.6386832735008232e+10
+    },
+    {
+      "name": "BM_PacketScenario/Memcpy/h16/p9000_median",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PacketScenario/Memcpy/h16/p9000",
+      "run_type": "aggregate",
+      "repetitions": 3,
+      "threads": 1,
+      "aggregate_name": "median",
+      "aggregate_unit": "time",
+      "iterations": 3,
+      "real_time": 2.2772324223065360e+02,
+      "cpu_time": 2.2753946227511764e+02,
+      "time_unit": "ns",
+      "bytes_per_second": 3.9623896047968887e+10
+    },
+    {
+      "name": "BM_PacketScenario/Memcpy/h16/p9000_stddev",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PacketScenario/Memcpy/h16/p9000",
+      "run_type": "aggregate",
+      "repetitions": 3,
+      "threads": 1,
+      "aggregate_name": "stddev",
+      "aggregate_unit": "time",
+      "iterations": 3,
+      "real_time": 4.3211712565067181e+01,
+      "cpu_time": 4.3239091048879992e+01,
+      "time_unit": "ns",
+      "bytes_per_second": 5.6750341877566195e+09
+    },
+    {
+      "name": "BM_PacketScenario/Memcpy/h16/p9000_cv",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PacketScenario/Memcpy/h16/p9000",
+      "run_type": "aggregate",
+      "repetitions": 3,
+      "threads": 1,
+      "aggregate_name": "cv",
+      "aggregate_unit": "percentage",
+      "iterations": 3,
+      "real_time": 1.7115213968818155e-01,
+      "cpu_time": 1.7139477982664833e-01,
+      "time_unit": "ns",
+      "bytes_per_second": 1.5596395072596131e-01
+    }
+  ]
+}

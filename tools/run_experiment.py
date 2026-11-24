@@ -46,7 +46,8 @@ DEFAULT_CONFIG = {
     "binary": "bazel-bin/benchmarks/scenarious/packet_scenario_benchmark",
     "scenarios": [],             # names as registered in C++
     "header_sizes": [16],
-    "payload_sizes": [64, 512, 1500, 9000],
+    "payload_sizes": [64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384,
+                      32768],
     "min_time": "1s",
     "env": {
         "taskset_cpus": [],      # empty = no affinity
@@ -535,12 +536,13 @@ def parse_min_time_seconds(text):
 
 
 def estimate_seconds(cfg, rounds, benchmark_count):
-    per_round = benchmark_count if cfg["isolation"] == "per-benchmark" else 1
-    launches = len(rounds) * per_round
     min_time = parse_min_time_seconds(cfg["min_time"])
     if min_time is None:
         return None
-    return launches * int(cfg["repetitions"]) * min_time
+    # Every benchmark runs once per round in both isolation modes; only the
+    # number of process launches differs.
+    return (len(rounds) * benchmark_count * int(cfg["repetitions"]) *
+            min_time)
 
 
 # --- Benchmark invocation -------------------------------------------------
@@ -914,6 +916,8 @@ def build_arg_parser():
                    help="print the plan and exit without side effects")
     p.add_argument("--skip-plot", action="store_true",
                    help="do not invoke plot.py after the benchmark")
+    p.add_argument("--skip-report", action="store_true",
+                   help="do not assemble the combined HTML report")
     p.add_argument("--keep-environment", action="store_true",
                    help="do not restore governor/turbo/power plan after the "
                         "run (default: restore)")
@@ -1082,6 +1086,20 @@ def main(argv):
              str(stats_path), args.reports_dir],
             check=True,
         )
+        if not args.skip_report:
+            report_script = Path(__file__).parent / "build_report.py"
+            safe_name = re.sub(r"[^A-Za-z0-9._-]+", "_",
+                               str(cfg["name"])).strip("_")
+            report_path = (Path(args.reports_dir) /
+                           f"{safe_name or 'report'}_report.html")
+            report_cmd = [
+                sys.executable, str(report_script),
+                str(stats_path), str(args.reports_dir),
+                "--output", str(report_path),
+            ]
+            if meta_path.exists():
+                report_cmd += ["--meta", str(meta_path)]
+            subprocess.run(report_cmd, check=True)
     return exit_code
 
 

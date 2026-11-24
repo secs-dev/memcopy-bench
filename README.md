@@ -146,8 +146,11 @@ dropped silently: with `stats.trim` set to `iqr` or `mad`, removed values are
 listed under `discarded`.
 
 Plots are generated from `stats.json`: each series is a median line with a
-p25–p75 band, separately for CPU time and real time. Raw single-run JSON files
-are still accepted by `plot/plot.py` and keep the original chart names.
+mean ± standard-deviation band and whiskers for every configured percentile,
+separately for CPU time and real time. Raw single-run JSON files are still
+accepted by `plot/plot.py` and keep the original chart names. The
+`tools/build_report.py` tool additionally combines the plots, statistics, and
+system metadata into one HTML page (`reports/<name>_report.html`).
 
 ## Development workflow
 

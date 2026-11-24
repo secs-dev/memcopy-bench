@@ -67,10 +67,13 @@ void RegisterScenario(const char *name) {
 }
 
 // Two header sizes cover common telecom cases (GTP-U basic, plus room for an
-// extension header). Payload sizes span cache levels and jumbo frames.
+// extension header). Payload sizes are compile-time powers of two from 64 B
+// (one cache line) through 32 KiB (2^15), covering L1/L2/L3 transitions.
 template <class Scenario> void RegisterScenarioBothH(const char *name) {
-  RegisterScenario<Scenario, 8, 64, 128, 512, 1500, 4096, 9000>(name);
-  RegisterScenario<Scenario, 16, 64, 128, 512, 1500, 4096, 9000>(name);
+  RegisterScenario<Scenario, 8, 64, 128, 256, 512, 1024, 2048, 4096, 8192,
+                   16384, 32768>(name);
+  RegisterScenario<Scenario, 16, 64, 128, 256, 512, 1024, 2048, 4096, 8192,
+                   16384, 32768>(name);
 }
 
 // Scenario whitelist. Extend as new combinations are studied. Each entry adds
@@ -88,13 +91,13 @@ using MemcpyEdgesSSEBody = sc::AlignTarget<Baseline, SSE2, Baseline, 16>;
 using MemcpyEdgesAVXBody = sc::AlignTarget<Baseline, Prefetch, Baseline, 32>;
 using SSEEdgesMemcpyBody = sc::AlignTarget<SSE2, Baseline, SSE2, 16>;
 using AVXEdgesMemcpyBody = sc::AlignTarget<Prefetch, Baseline, Prefetch, 32>;
-using ComposedPrefetch = sc::ShortFallback<Baseline, 256, sc::AlignTarget<Baseline, Prefetch, Baseline, 32>>;
-using ComposedStream = sc::ShortFallback<Baseline, 256, sc::AlignTarget<Baseline, Stream, Baseline, 32>>;
-using ComposedSSE = sc::ShortFallback<Baseline, 64, sc::AlignTarget<Baseline, SSE2, Baseline, 16>>;
-using ComposedPrefetch =
-    sc::ShortFallback<Small, 64,
-                      sc::AlignTarget<Small, sc::AVX2PrefetchAbove<1024>, Small,
-                                      32>>;
+using ComposedPrefetch = sc::ShortFallback<
+    Baseline, 256, sc::AlignTarget<Baseline, Prefetch, Baseline, 32>>;
+using ComposedStream = sc::ShortFallback<
+    Baseline, 256, sc::AlignTarget<Baseline, Stream, Baseline, 32>>;
+using ComposedSSE =
+    sc::ShortFallback<Baseline, 64,
+                      sc::AlignTarget<Baseline, SSE2, Baseline, 16>>;
 #endif
 
 } // namespace
@@ -114,12 +117,12 @@ static const bool RegisteredScenarios = [] {
     RegisterScenarioBothH<ComposedStream>("ComposedStream");
     RegisterScenarioBothH<MemcpyEdgesAVXBody>("MemcpyEdgesAVXBody");
     RegisterScenarioBothH<AVXEdgesMemcpyBody>("AVXEdgesMemcpyBody");
-}
+  }
   if (__builtin_cpu_supports("sse2")) {
     RegisterScenarioBothH<SSEEdgesMemcpyBody>("SSEEdgesMemcpyBody");
     RegisterScenarioBothH<ComposedSSE>("ComposedSSE");
     RegisterScenarioBothH<MemcpyEdgesSSEBody>("MemcpyEdgesSSEBody");
-}
+  }
 #endif
 
   return true;

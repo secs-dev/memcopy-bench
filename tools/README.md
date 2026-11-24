@@ -7,7 +7,9 @@ binary or a specific platform.
 
 - `run_experiment.py` — orchestrator (config, environment, launches, artifacts)
 - `bench_stats.py` — statistics and `stats.json` / `stats.csv` writers
+- `build_report.py` — combines `stats.json`, `meta.json` and plots into one HTML
 - `tests/test_bench_stats.py` — unit tests for the statistics layer
+- `tests/test_build_report.py` — unit tests for the report assembler
 - `requirements.txt` — Python dependencies (numpy, scipy, plotly)
 
 ## Install dependencies
@@ -32,6 +34,10 @@ Multi-run with statistics and plots:
 .venv/bin/python tools/run_experiment.py scenarious/stability_scenario.json
 ```
 
+This also writes `reports/<name>_report.html`: a single page with system
+characteristics, scenarios, all charts and data tables. See
+[Combined HTML report](#combined-html-report) for details.
+
 The same through `just`:
 
 ```bash
@@ -39,6 +45,69 @@ just experiment scenarious/stability_scenario.json
 just stats scenarious/stability_scenario.json   # recompute, do not measure
 just stats-test                                 # unit tests for bench_stats
 ```
+
+### Compile-time payload sweep
+
+`scenarious/payload_sweep_scenario.json` covers every benchmark that
+`packet_scenario_benchmark` registers at compile time: all 11 scenarios, both
+header sizes (`h8`, `h16`) and all payload sizes available in the binary —
+powers of two from 64 B to 32 KiB (2^15), i.e. 220 benchmarks.
+
+```bash
+.venv/bin/python tools/run_experiment.py scenarious/payload_sweep_scenario.json --dry-run
+.venv/bin/python tools/run_experiment.py scenarious/payload_sweep_scenario.json
+```
+
+With the default config (`runs=3`, `warmup_runs=1`, `repetitions=3`,
+`min_time=0.5s`) the dry run estimates about 22 minutes of benchmark time.
+The scenario list can be trimmed if only a subset (for example
+`ComposedPrefetch` against `Memcpy`) is needed.
+
+`scenarious/prefetch_vs_memcpy_scenario.json` is that focused variant: libc
+`Memcpy` baseline, `ComposedPrefetch` (AVX2 + 4x unroll + prefetch) and
+`ComposedStream` (AVX2 non-temporal stores), same 10 payload sizes and both
+headers — 60 benchmarks, about 6 minutes.
+
+```bash
+.venv/bin/python tools/run_experiment.py scenarious/prefetch_vs_memcpy_scenario.json --dry-run
+.venv/bin/python tools/run_experiment.py scenarious/prefetch_vs_memcpy_scenario.json
+```
+
+Note: `ComposedPrefetch` is gated by `AVX2PrefetchAbove<1024>`, so below 1024 B
+it runs plain AVX2 and starts prefetching at 1024 B. There is no separate
+AVX-512 or large-only prefetch implementation; at 32 KiB it is the same AVX2
+prefetch loop.
+
+## Combined HTML report
+
+`tools/build_report.py` collects `stats.json`, `meta.json`, and all Plotly
+charts written to the reports directory into one self-contained HTML page:
+
+- system, experiment, run, and environment characteristics;
+- the scenarios, header sizes, payload sizes, and measurement counts;
+- warnings and failed launches;
+- every chart, embedded in the page;
+- a data table under each chart, including mean, standard deviation, every
+  configured percentile, confidence interval, and within/between-round sigma.
+
+`run_experiment.py` runs this automatically after plotting. Use
+`--skip-report` to disable it, or `--skip-plot` to skip both charts and the
+report.
+
+Standalone invocation (for example after regenerating plots or with
+`--link-plots`):
+
+```bash
+.venv/bin/python tools/build_report.py \
+  results/demo/20260101T000000Z/stats.json reports \
+  --meta results/demo/20260101T000000Z/meta.json \
+  --output reports/demo_report.html
+```
+
+By default charts are embedded via `srcdoc`, so the report remains readable
+when moved. `--link-plots` keeps them as separate relative links instead.
+The tool only reads `stats.json`, `meta.json`, and `*.html` files matching the
+names produced by `plot/plot.py`; unknown HTML files are listed as skipped.
 
 ## Run variants
 
@@ -133,7 +202,7 @@ unknown keys are ignored.
 | `binary` | string | `bazel-bin/benchmarks/scenarious/packet_scenario_benchmark` | Benchmark executable. `.exe` and `PATH` are tried as fallbacks. |
 | `scenarios` | list of strings | `[]` (required non-empty) | Scenario names registered in C++. |
 | `header_sizes` | list of int | `[16]` (required non-empty) | Header sizes `H` to run. |
-| `payload_sizes` | list of int | `[64, 512, 1500, 9000]` (required non-empty) | Payload sizes `P` to run. |
+| `payload_sizes` | list of int | `[64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768]` (required non-empty) | Payload sizes `P` to run. |
 | `min_time` | string | `"1s"` | Google Benchmark minimum time **per repetition**. Only `<float>s`, a bare number (seconds), or `<integer>x` are accepted (`20ms` is invalid and rejected). |
 | `runs` | int >= 1 | `1` | Number of measured rounds (process launches). |
 | `warmup_runs` | int >= 0 | `0` | Rounds executed before the measured ones and excluded from statistics. |
@@ -186,7 +255,8 @@ run_experiment.py CONFIG [options]
 | `--resume` | Continue the latest run of this experiment. |
 | `--stats-only` | Recompute `stats.json`/`stats.csv` from existing measurements; skips binary lookup, coverage checks, environment changes and launches. |
 | `--dry-run` | Print the plan and exit. |
-| `--skip-plot` | Do not invoke `plot/plot.py`. |
+| `--skip-plot` | Do not invoke `plot/plot.py` or build the combined report. |
+| `--skip-report` | Generate charts but do not assemble the combined HTML report. |
 | `--keep-environment` | Do not restore governor/turbo/power plan. |
 | `--runs N` | Override config `runs`. |
 | `--warmup N` | Override config `warmup_runs`. |
@@ -210,6 +280,7 @@ results/<name>/<UTC timestamp>/
   stats.json            # descriptive statistics per benchmark and metric
   stats.csv             # time statistics as a table (throughput lives in stats.json)
 results/<name>/latest   # text file with the name of the most recent run
+reports/<name>_report.html  # combined report (unless --skip-report)
 ```
 
 `measurements.jsonl` line:
@@ -255,7 +326,11 @@ workflows keep working. The run directory is still created.
 Plot names produced from `stats.json` include the metric:
 `packet_scenario_h8_throughput_cpu.html`, `..._throughput_real.html`, and the
 matching `_time_*.html` files. Raw single-run JSON still produces the original
-unsuffixed names.
+unsuffixed names. Each stats-based series has a solid median line, a dashed
+mean line inside a translucent mean ± std band, and vertical whiskers whose
+ends are the first and last configured percentiles; intermediate percentiles
+are drawn as horizontal ticks. All of this is repeated for CPU time and real
+time.
 
 ## Exit codes
 

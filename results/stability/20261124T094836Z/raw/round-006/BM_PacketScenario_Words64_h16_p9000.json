@@ -1,0 +1,152 @@
+{
+  "context": {
+    "date": "2026-11-24T13:00:55+03:00",
+    "host_name": "Vostro-3590",
+    "executable": "bazel-bin/benchmarks/scenarious/packet_scenario_benchmark",
+    "num_cpus": 8,
+    "mhz_per_cpu": 4200,
+    "cpu_scaling_enabled": true,
+    "aslr_enabled": false,
+    "caches": [
+      {
+        "type": "Data",
+        "level": 1,
+        "size": 32768,
+        "num_sharing": 2
+      },
+      {
+        "type": "Instruction",
+        "level": 1,
+        "size": 32768,
+        "num_sharing": 2
+      },
+      {
+        "type": "Unified",
+        "level": 2,
+        "size": 262144,
+        "num_sharing": 2
+      },
+      {
+        "type": "Unified",
+        "level": 3,
+        "size": 6291456,
+        "num_sharing": 8
+      }
+    ],
+    "load_avg": [5.00928,2.9624,3.93506],
+    "library_version": "1.9.5",
+    "library_build_type": "release",
+    "json_schema_version": 1
+  },
+  "benchmarks": [
+    {
+      "name": "BM_PacketScenario/Words64/h16/p9000",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PacketScenario/Words64/h16/p9000",
+      "run_type": "iteration",
+      "repetitions": 3,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 1344071,
+      "real_time": 9.9258132166551104e+02,
+      "cpu_time": 9.9230820246847077e+02,
+      "time_unit": "ns",
+      "bytes_per_second": 9.0858868016728611e+09
+    },
+    {
+      "name": "BM_PacketScenario/Words64/h16/p9000",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PacketScenario/Words64/h16/p9000",
+      "run_type": "iteration",
+      "repetitions": 3,
+      "repetition_index": 1,
+      "threads": 1,
+      "iterations": 1344071,
+      "real_time": 1.0854512732306025e+03,
+      "cpu_time": 1.0839584047271312e+03,
+      "time_unit": "ns",
+      "bytes_per_second": 8.3176623389618254e+09
+    },
+    {
+      "name": "BM_PacketScenario/Words64/h16/p9000",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PacketScenario/Words64/h16/p9000",
+      "run_type": "iteration",
+      "repetitions": 3,
+      "repetition_index": 2,
+      "threads": 1,
+      "iterations": 1344071,
+      "real_time": 1.0544554796628001e+03,
+      "cpu_time": 1.0529519898874389e+03,
+      "time_unit": "ns",
+      "bytes_per_second": 8.5625936287596693e+09
+    },
+    {
+      "name": "BM_PacketScenario/Words64/h16/p9000_mean",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PacketScenario/Words64/h16/p9000",
+      "run_type": "aggregate",
+      "repetitions": 3,
+      "threads": 1,
+      "aggregate_name": "mean",
+      "aggregate_unit": "time",
+      "iterations": 3,
+      "real_time": 1.0441626915196377e+03,
+      "cpu_time": 1.0430728656943468e+03,
+      "time_unit": "ns",
+      "bytes_per_second": 8.6553809231314507e+09
+    },
+    {
+      "name": "BM_PacketScenario/Words64/h16/p9000_median",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PacketScenario/Words64/h16/p9000",
+      "run_type": "aggregate",
+      "repetitions": 3,
+      "threads": 1,
+      "aggregate_name": "median",
+      "aggregate_unit": "time",
+      "iterations": 3,
+      "real_time": 1.0544554796628001e+03,
+      "cpu_time": 1.0529519898874389e+03,
+      "time_unit": "ns",
+      "bytes_per_second": 8.5625936287596693e+09
+    },
+    {
+      "name": "BM_PacketScenario/Words64/h16/p9000_stddev",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PacketScenario/Words64/h16/p9000",
+      "run_type": "aggregate",
+      "repetitions": 3,
+      "threads": 1,
+      "aggregate_name": "stddev",
+      "aggregate_unit": "time",
+      "iterations": 3,
+      "real_time": 4.7282799110728384e+01,
+      "cpu_time": 4.6616925194942432e+01,
+      "time_unit": "ns",
+      "bytes_per_second": 3.9242746817032772e+08
+    },
+    {
+      "name": "BM_PacketScenario/Words64/h16/p9000_cv",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PacketScenario/Words64/h16/p9000",
+      "run_type": "aggregate",
+      "repetitions": 3,
+      "threads": 1,
+      "aggregate_name": "cv",
+      "aggregate_unit": "percentage",
+      "iterations": 3,
+      "real_time": 4.5282980798628858e-02,
+      "cpu_time": 4.4691916287085791e-02,
+      "time_unit": "ns",
+      "bytes_per_second": 4.5339133153754999e-02
+    }
+  ]
+}
