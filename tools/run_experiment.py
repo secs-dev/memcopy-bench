@@ -904,8 +904,9 @@ def build_arg_parser():
     p.add_argument("config", help="path to experiment JSON")
     p.add_argument("--results-dir", default="results",
                    help="where to write run directories")
-    p.add_argument("--reports-dir", default="reports",
-                   help="where plot.py writes HTML")
+    p.add_argument("--reports-dir", default=None,
+                   help="optional directory for a copy of the report; the "
+                        "canonical report always lives in the run directory")
     p.add_argument("--run-dir", default=None,
                    help="explicit run directory (overrides --resume lookup)")
     p.add_argument("--resume", action="store_true",
@@ -1012,8 +1013,7 @@ def main(argv):
         try:
             failures = execute_plan(
                 adapter, binary, cfg, names, rounds, filter_re, run_dir, log)
-            env_meta["run_status"] = (
-                "ok" if not failures else f"partial: {len(failures)} failures")
+            env_meta["run_status"] = ("ok" if not failures else f"partial: {len(failures)} failures")
         except KeyboardInterrupt:
             print("\nInterrupted; measurements so far are preserved.",
                   file=sys.stderr)
@@ -1089,10 +1089,7 @@ def main(argv):
         )
         if not args.skip_report:
             report_script = Path(__file__).parent / "build_report.py"
-            safe_name = re.sub(r"[^A-Za-z0-9._-]+", "_",
-                               str(cfg["name"])).strip("_")
-            report_path = (Path(args.reports_dir) /
-                           f"{safe_name or 'report'}_report.html")
+            report_path = run_dir / "report.html"
             report_cmd = [
                 sys.executable, str(report_script),
                 str(stats_path), str(run_plots_dir),
@@ -1101,6 +1098,16 @@ def main(argv):
             if meta_path.exists():
                 report_cmd += ["--meta", str(meta_path)]
             subprocess.run(report_cmd, check=True)
+            print(f"[ok] report: {report_path}")
+
+            if args.reports_dir:
+                safe_name = re.sub(r"[^A-Za-z0-9._-]+", "_",
+                                   str(cfg["name"])).strip("_")
+                stable = (Path(args.reports_dir) /
+                          f"{safe_name or 'report'}_report.html")
+                stable.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(report_path, stable)
+                print(f"[ok] report copy: {stable}")
     return exit_code
 
 

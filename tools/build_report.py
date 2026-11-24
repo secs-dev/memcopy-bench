@@ -33,9 +33,12 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-STATS_PLOT_RE = re.compile(
-    r"^(packet_scenario|copy)_(throughput|time)_(cpu|real)"
-    r"_(mean_std|median_percentiles)\.html$")
+STATS_PLOT_RE =  re.compile(
+    r"^(?P<prefix>packet_scenario|copy)"
+    r"(?:_h(?P<header>\d+))?"
+    r"_(?P<quantity>throughput|time)"
+    r"_(?P<metric>cpu|real)"
+    r"_(?P<variant>mean_std|median_percentiles)\.html$")
 LEGACY_SCENARIO_RE = re.compile(
     r"^packet_scenario_h(\d+)_(throughput|time)(?:_(cpu|real))?\.html$")
 LEGACY_METHOD_RE = re.compile(
@@ -68,14 +71,15 @@ def classify_plot_file(path: Path) -> Plot | None:
     name = path.name
     m = STATS_PLOT_RE.match(name)
     if m:
-        prefix, quantity, metric, _variant = m.groups()
+        header_str = m.group("header")
         return Plot(
             path=path,
-            category="scenario" if prefix == "packet_scenario" else "dynamic",
-            header=None,
+            category=("scenario" if m.group("prefix") == "packet_scenario"
+                      else "dynamic"),
+            header=int(header_str) if header_str else None,
             fixed=False,
-            quantity=quantity,
-            metric=metric,
+            quantity=m.group("quantity"),
+            metric=m.group("metric"),
         )
     m = LEGACY_SCENARIO_RE.match(name)
     if m:

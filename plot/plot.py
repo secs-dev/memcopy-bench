@@ -410,28 +410,9 @@ def plot(input_path: str, output_target: str) -> None:
     color_map = {**method_color, **scenario_color}
 
     if is_stats:
-        headers = sorted({
-            key[1] for (_, cat, _), groups in series.items()
-            if cat == "scenario" for key in groups
-            if isinstance(key, tuple) and len(key) > 1
-        })
-
-        def dash_for(key):
-            if (isinstance(key, tuple) and len(key) > 1
-                    and len(headers) > 1):
-                return "solid" if key[1] == headers[0] else "dash"
-            return "solid"
-
-        def symbol_for(key):
-            if (isinstance(key, tuple) and len(key) > 1
-                    and len(headers) > 1):
-                return "circle" if key[1] == headers[0] else "square"
-            return "circle"
-
         def label_for(key):
             if isinstance(key, tuple) and len(key) > 1:
-                name = SCENARIO_LABELS.get(key[0], key[0])
-                return f"{name} (H={key[1]})"
+                return SCENARIO_LABELS.get(key[0], key[0])
             return str(key).removeprefix("BM_").removeprefix("Copy")
 
         prefix = "packet_scenario" if scenarios else "copy"
@@ -451,23 +432,49 @@ def plot(input_path: str, output_target: str) -> None:
                 if not merged:
                     continue
 
-                for variant in ("mean_std", "median_percentiles"):
-                    title = (
-                        f"{kind} Copy "
-                        f"{'Throughput' if quantity == 'tp' else 'Time'} vs "
-                        f"{axis} Size — {VARIANT_LABELS[variant]} "
-                        f"[{METRIC_LABELS.get(metric, metric)}]")
-                    fig = build_figure(
-                        merged, color_map, caches, title, y_title, y_log,
-                        label_fn=label_for, variant=variant,
-                        dash_fn=dash_for, symbol_fn=symbol_for,
-                    )
-                    path = out_dir / (
-                        f"{prefix}_{qname}_{metric}_{variant}.html")
-                    fig.write_html(str(path), include_plotlyjs="cdn",
-                                   config={"responsive": False})
-                    print(f"[{METRIC_LABELS.get(metric, metric)}] "
-                          f"{VARIANT_LABELS[variant]} {qname}: {path}")
+                # Split by header size so each graph shows one H. Method
+                # data (if any) is folded into every group so a mixed
+                # experiment still renders each H independently.
+                by_header = defaultdict(dict)
+                method_keys = {}
+                for key, payload_map in merged.items():
+                    if (isinstance(key, tuple) and len(key) > 1
+                            and key[1] is not None):
+                        by_header[key[1]][key] = payload_map
+                    else:
+                        method_keys[key] = payload_map
+
+                if by_header:
+                    plot_groups = []
+                    for header in sorted(by_header):
+                        group = dict(by_header[header])
+                        group.update(method_keys)
+                        plot_groups.append(
+                            (f"_h{header}", f" (H={header})", group))
+                elif method_keys:
+                    plot_groups = [("", "", method_keys)]
+                else:
+                    continue
+
+                for suffix, title_suffix, group in plot_groups:
+                    for variant in ("mean_std", "median_percentiles"):
+                        title = (
+                            f"{kind} Copy "
+                            f"{'Throughput' if quantity == 'tp' else 'Time'} "
+                            f"vs {axis} Size{title_suffix} — "
+                            f"{VARIANT_LABELS[variant]} "
+                            f"[{METRIC_LABELS.get(metric, metric)}]")
+                        fig = build_figure(
+                            group, color_map, caches, title, y_title, y_log,
+                            label_fn=label_for, variant=variant,
+                        )
+                        path = out_dir / (
+                            f"{prefix}{suffix}_{qname}_{metric}_{variant}.html")
+                        fig.write_html(str(path), include_plotlyjs="cdn",
+                                       config={"responsive": False})
+                        print(f"[{METRIC_LABELS.get(metric, metric)}] "
+                              f"{VARIANT_LABELS[variant]} {qname}{suffix}: "
+                              f"{path}")
         return
 
     # --- Legacy raw single-run JSON: one line per measured point ---
