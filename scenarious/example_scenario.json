@@ -8,5 +8,14 @@
     "taskset_cpus": [2],
     "governor": "performance",
     "no_turbo": true
+  },
+  "runs": 1,
+  "warmup_runs": 0,
+  "repetitions": 1,
+  "isolation": "batch",
+  "seed": 0,
+  "stats": {
+    "percentiles": [5, 25, 50, 75, 95],
+    "trim": "none"
   }
 }

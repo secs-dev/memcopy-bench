@@ -89,6 +89,66 @@ Store the matching experiment metadata (scenario, algorithm, input size,
 compiler configuration, CPU information, and source revision) alongside raw
 output in `results/`. Use `reports/` for the derived analysis.
 
+## Multi-run experiments and statistics
+
+`tools/run_experiment.py` repeats a selected set of scenarios and computes
+descriptive statistics over the repetitions. The full reference for config
+keys, CLI flags, isolation modes and the output layout is in
+[`tools/README.md`](tools/README.md).
+
+Install the Python dependencies once (numpy and scipy are required by the
+statistics layer):
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r tools/requirements.txt
+```
+
+Run an experiment and open the generated charts:
+
+```bash
+.venv/bin/python tools/run_experiment.py scenarious/stability_scenario.json
+# or
+just experiment scenarious/stability_scenario.json
+```
+
+An experiment runs `runs` measured rounds plus an optional number of
+discarded `warmup_runs`. Each launch performs `repetitions` in-process Google
+Benchmark repetitions, so one benchmark yields `runs * repetitions`
+independent observations. `isolation` controls process granularity:
+
+- `batch` — one process per round runs every selected benchmark;
+- `per-benchmark` — one process per benchmark in a seeded shuffled order.
+  Slower, but removes ordering and drift effects.
+
+Every observation is appended to `measurements.jsonl` immediately. If a run is
+interrupted, continue it with `--resume`; `--stats-only` recomputes statistics
+from existing measurements without launching anything:
+
+```bash
+.venv/bin/python tools/run_experiment.py scenarious/stability_scenario.json --resume
+.venv/bin/python tools/run_experiment.py scenarious/stability_scenario.json --stats-only
+.venv/bin/python tools/run_experiment.py scenarious/stability_scenario.json --dry-run
+```
+
+Results are written to `results/<name>/<UTC timestamp>/`:
+
+- `measurements.jsonl` — one line per observation (raw data);
+- `raw/round-NNN.json` — raw Google Benchmark JSON (batch isolation);
+- `meta.json` — config, environment changes, system information;
+- `stats.json` / `stats.csv` — medians, percentiles, CV, confidence intervals,
+  per-round medians, and within/between-round dispersion for both CPU time and
+  real time.
+
+`results/<name>/latest` points at the most recent run. Warm-up rounds are kept
+in `measurements.jsonl` but excluded from statistics. Outliers are never
+dropped silently: with `stats.trim` set to `iqr` or `mad`, removed values are
+listed under `discarded`.
+
+Plots are generated from `stats.json`: each series is a median line with a
+p25–p75 band, separately for CPU time and real time. Raw single-run JSON files
+are still accepted by `plot/plot.py` and keep the original chart names.
+
 ## Development workflow
 
 1. Add an algorithm or explicit frame-processing scenario under `lib/`.

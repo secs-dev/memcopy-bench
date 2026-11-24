@@ -1,9 +1,19 @@
 #!/usr/bin/env python3
+"""Render interactive Plotly charts from benchmark results.
+
+Accepts either a raw Google Benchmark JSON file (legacy, single-run) or a
+``stats.json`` produced by ``tools/bench_stats.py``. With statistics, each
+series is drawn as a median line with a p25-p75 band, separately for the
+CPU-time and real-time metrics. Raw single-run input keeps the original
+file names and uses ``real_time`` / ``bytes_per_second`` as before.
+"""
 import json
 import re
 import sys
 from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 import plotly.graph_objects as go
 
@@ -27,6 +37,25 @@ PALETTE = [
     "#dd4477",  # Crimson Rose
 ]
 
+SCENARIO_RE = re.compile(r"^BM_PacketScenario/([^/]+)/h(\d+)/p(\d+)$")
+METHOD_RE = re.compile(r"^(BM_\w+)/(\d+)")
+
+METRIC_LABELS = {"cpu": "CPU time", "real": "Real time"}
+
+
+@dataclass
+class Point:
+    metric: str
+    category: str
+    key: object
+    x: int
+    time: Optional[float]
+    time_lo: Optional[float]
+    time_hi: Optional[float]
+    tp: Optional[float]
+    tp_lo: Optional[float]
+    tp_hi: Optional[float]
+
 
 def fmt_bytes(n: int) -> str:
     if n >= 1024 * 1024:
@@ -34,6 +63,12 @@ def fmt_bytes(n: int) -> str:
     if n >= 1024:
         return f"{n // 1024} KB"
     return f"{n} B"
+
+
+def hex_to_rgba(color: str, alpha: float) -> str:
+    color = color.lstrip("#")
+    r, g, b = (int(color[i:i + 2], 16) for i in (0, 2, 4))
+    return f"rgba({r}, {g}, {b}, {alpha})"
 
 
 def add_cache_lines(fig: go.Figure, caches: list[dict]) -> None:
@@ -60,6 +95,105 @@ def add_cache_lines(fig: go.Figure, caches: list[dict]) -> None:
             )
 
 
+def classify_method(name: str):
+    """Return (category, key, x) for a benchmark name, or None."""
+    match = SCENARIO_RE.match(name)
+    if match:
+        return "scenario", (match.group(1), int(match.group(2))), int(
+            match.group(3))
+
+    match = METHOD_RE.match(name)
+    if not match:
+        return None
+    raw_method, size = match.group(1), int(match.group(2))
+    category = "fixed" if raw_method.endswith("_Fixed") else "dynamic"
+    return category, raw_method.removesuffix("_Fixed"), size
+
+
+def collect_points(data) -> tuple[list[Point], list[dict], bool]:
+    """Normalize raw GBench JSON or stats.json into a list of points.
+
+    Returns (points, caches, is_stats).
+    """
+    benchmarks = data.get("benchmarks")
+    is_stats = isinstance(benchmarks, dict) and "schema" in data
+    points: list[Point] = []
+
+    if is_stats:
+        for name, entry in benchmarks.items():
+            scenario = entry.get("scenario")
+            header = entry.get("header")
+            payload = entry.get("payload")
+            if scenario is not None:
+                category, key, x = "scenario", (scenario, header), payload
+            else:
+                classified = classify_method(name)
+                if not classified:
+                    continue
+                category, key, x = classified
+            if x is None:
+                continue
+            for metric, block in (entry.get("metrics") or {}).items():
+                time_summary = block.get("time_ns") or {}
+                tp_summary = block.get("throughput_gbps") or {}
+                if time_summary.get("median") is None:
+                    continue
+                points.append(Point(
+                    metric=metric,
+                    category=category,
+                    key=key,
+                    x=x,
+                    time=time_summary.get("median"),
+                    time_lo=time_summary.get("p25"),
+                    time_hi=time_summary.get("p75"),
+                    tp=tp_summary.get("median"),
+                    tp_lo=tp_summary.get("p25"),
+                    tp_hi=tp_summary.get("p75"),
+                ))
+        caches = (data.get("environment") or {}).get("caches") or []
+        return points, caches, True
+
+    for bm in benchmarks or []:
+        # Aggregates are derived from repetitions; plotting them as separate
+        # series would silently shadow the real observations.
+        if bm.get("run_type") not in (None, "iteration"):
+            continue
+        name = bm.get("name") or bm.get("run_name") or ""
+        classified = classify_method(name)
+        if not classified:
+            continue
+        category, key, x = classified
+        latency = bm.get("real_time")
+        throughput = (bm.get("bytes_per_second") or 0) / 1e9
+        points.append(Point(
+            metric="real",
+            category=category,
+            key=key,
+            x=x,
+            time=latency,
+            time_lo=None,
+            time_hi=None,
+            tp=throughput,
+            tp_lo=None,
+            tp_hi=None,
+        ))
+    caches = (data.get("context") or {}).get("caches") or []
+    return points, caches, False
+
+
+def group_points(points):
+    """(metric, category, quantity) -> key -> x -> (value, lo, hi)."""
+    series = defaultdict(lambda: defaultdict(dict))
+    for point in points:
+        if point.time is not None:
+            series[(point.metric, point.category, "time")][point.key][
+                point.x] = (point.time, point.time_lo, point.time_hi)
+        if point.tp is not None:
+            series[(point.metric, point.category, "tp")][point.key][
+                point.x] = (point.tp, point.tp_lo, point.tp_hi)
+    return series
+
+
 def build_figure(
         series: dict,
         color_map: dict,
@@ -69,21 +203,44 @@ def build_figure(
         y_log: bool,
         label_fn=None,
 ) -> go.Figure:
-    """Build a line plot.
-
-    ``series`` maps a key to {x: y}. Default label logic strips the BM_ / Copy
-    prefixes used by method benchmarks; callers with different key shapes can
-    pass ``label_fn`` to format labels themselves.
-    """
+    """Build a line plot with an optional p25-p75 band."""
     fig = go.Figure()
-    for key in sorted(series):
+    has_band = any(
+        lo is not None or hi is not None
+        for values in series.values()
+        for _, lo, hi in values.values()
+    )
+
+    for key in sorted(series, key=str):
         sizes = sorted(series[key])
-        y = [series[key][s] for s in sizes]
+        values = [series[key][s] for s in sizes]
+        y = [v[0] for v in values]
+        color = color_map.get(key)
+        if color is None and isinstance(key, tuple) and key:
+            color = color_map.get(key[0])
+        color = color or "#333333"
         if label_fn is None:
-            label = key.removeprefix("BM_").removeprefix("Copy")
+            label = str(key).removeprefix("BM_").removeprefix("Copy")
         else:
             label = label_fn(key)
-        color = color_map.get(key, "#333333")
+
+        if has_band:
+            upper = [v[2] for v in values]
+            lower = [v[1] for v in values]
+            if any(u is not None for u in upper):
+                fig.add_trace(go.Scatter(
+                    x=sizes, y=upper, mode="lines",
+                    line=dict(width=0), hoverinfo="skip",
+                    showlegend=False,
+                ))
+            if any(low is not None for low in lower):
+                fig.add_trace(go.Scatter(
+                    x=sizes, y=lower, mode="lines",
+                    line=dict(width=0), fill="tonexty",
+                    fillcolor=hex_to_rgba(color, 0.18),
+                    hoverinfo="skip", showlegend=False,
+                ))
+
         fig.add_trace(
             go.Scatter(
                 x=sizes,
@@ -112,150 +269,120 @@ def plot(input_path: str, output_target: str) -> None:
     with open(input_path, encoding="utf-8") as f:
         data = json.load(f)
 
-    # Categories: dynamic (runtime size), fixed (compile-time size),
-    # scenario (compile-time scenario composed over payload-copy methods).
-    data_by_cat = {
-        "dynamic": {"tp": defaultdict(dict), "time": defaultdict(dict)},
-        "fixed": {"tp": defaultdict(dict), "time": defaultdict(dict)},
-        "scenario": {"tp": defaultdict(dict), "time": defaultdict(dict)},
-    }
+    points, caches, is_stats = collect_points(data)
+    series = group_points(points)
 
-    scenario_re = re.compile(r"^BM_PacketScenario/(\w+)/h(\d+)/p(\d+)$")
-
-    for bm in data.get("benchmarks", []):
-        name = bm.get("name", "")
-        tp = bm.get("bytes_per_second", 0) / 1e9  # GB/s
-        latency = bm.get("real_time", 0)  # ns
-
-        m_scn = scenario_re.match(name)
-        if m_scn:
-            scenario = m_scn.group(1)
-            header = int(m_scn.group(2))
-            payload = int(m_scn.group(3))
-            key = (scenario, header)
-            data_by_cat["scenario"]["tp"][key][payload] = tp
-            data_by_cat["scenario"]["time"][key][payload] = latency
-            continue
-
-        m = re.match(r"^(BM_\w+)/(\d+)", name)
-        if not m:
-            continue
-        raw_method, size = m.group(1), int(m.group(2))
-        is_fixed = raw_method.endswith("_Fixed")
-        cat = "fixed" if is_fixed else "dynamic"
-
-        # Base method name without _Fixed suffix for consistent coloring
-        base_method = raw_method.removesuffix("_Fixed")
-        data_by_cat[cat]["tp"][base_method][size] = tp
-        data_by_cat[cat]["time"][base_method][size] = latency
-
-    caches = data.get("context", {}).get("caches", [])
-
-    # Consistent color assignment within each category
-    all_methods = sorted(
-        set(data_by_cat["dynamic"]["tp"].keys())
-        | set(data_by_cat["fixed"]["tp"].keys())
-    )
-    method_color = {m: PALETTE[i % len(PALETTE)] for i, m in enumerate(all_methods)}
-
-    all_scenarios = sorted({key[0] for key in data_by_cat["scenario"]["tp"]})
-    scenario_color = {
-        s: PALETTE[i % len(PALETTE)] for i, s in enumerate(all_scenarios)
-    }
+    metrics = sorted({metric for metric, _, _ in series})
+    if not metrics:
+        print("No plottable benchmarks found.", file=sys.stderr)
+        return
 
     target = Path(output_target)
     out_dir = target.parent if target.suffix == ".html" else target
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # --- Existing dynamic / fixed plots (unchanged behavior) ---
+    # Consistent color assignment within each category.
+    methods = sorted(
+        {key for (_, cat, _), groups in series.items()
+         if cat in ("dynamic", "fixed") for key in groups}
+    )
+    method_color = {m: PALETTE[i % len(PALETTE)] for i, m in enumerate(methods)}
+
+    scenarios = sorted(
+        {key[0] for (_, cat, _), groups in series.items()
+         if cat == "scenario" for key in groups})
+    scenario_color = {
+        s: PALETTE[i % len(PALETTE)] for i, s in enumerate(scenarios)
+    }
+
+    suffix_for = (lambda metric: "") if not is_stats else (
+        lambda metric: f"_{metric}")
+
+    def metric_title(base: str, metric: str) -> str:
+        if not is_stats:
+            return base
+        return f"{base} [{METRIC_LABELS.get(metric, metric)}, median with IQR]"
+
+    # --- Dynamic / fixed method benchmarks ---
     configs = [
         ("dynamic", "Dynamic Size", "copy"),
         ("fixed", "Fixed Size", "copy_fixed"),
     ]
+    for metric in metrics:
+        for cat, label, prefix in configs:
+            tp_series = series.get((metric, cat, "tp"))
+            time_series = series.get((metric, cat, "time"))
+            if not tp_series:
+                continue
+            suffix = suffix_for(metric)
+            fig_tp = build_figure(
+                tp_series, method_color, caches,
+                metric_title(f"Memory Copy Throughput vs Buffer Size "
+                             f"({label})", metric),
+                "Throughput (GB/s)", y_log=False,
+            )
+            fig_time = build_figure(
+                time_series, method_color, caches,
+                metric_title(f"Single Copy Time vs Buffer Size ({label})",
+                             metric),
+                METRIC_LABELS.get(metric, "Time (ns)") + " (ns)",
+                y_log=True,
+            )
+            tp_path = out_dir / f"{prefix}_throughput{suffix}.html"
+            time_path = out_dir / f"{prefix}_time{suffix}.html"
+            fig_tp.write_html(str(tp_path), include_plotlyjs="cdn",
+                              config={"responsive": False})
+            fig_time.write_html(str(time_path), include_plotlyjs="cdn",
+                                config={"responsive": False})
+            print(f"[{label}] Saved throughput: {tp_path}")
+            print(f"[{label}] Saved copy time:  {time_path}")
 
-    for cat, label, prefix in configs:
-        tp_series = data_by_cat[cat]["tp"]
-        time_series = data_by_cat[cat]["time"]
-
-        if not tp_series:
+    # --- Scenario benchmarks: one pair per header size ---
+    for metric in metrics:
+        scenario_tp = series.get((metric, "scenario", "tp"))
+        scenario_time = series.get((metric, "scenario", "time"))
+        if not scenario_tp:
             continue
 
-        fig_tp = build_figure(
-            tp_series,
-            method_color,
-            caches,
-            f"Memory Copy Throughput vs Buffer Size ({label})",
-            "Throughput (GB/s)",
-            y_log=False,
-        )
-        fig_time = build_figure(
-            time_series,
-            method_color,
-            caches,
-            f"Single Copy Time vs Buffer Size ({label})",
-            "Time (ns)",
-            y_log=True,
-        )
+        tp_by_h = defaultdict(dict)
+        time_by_h = defaultdict(dict)
+        for (scenario, header), payload_map in scenario_tp.items():
+            tp_by_h[header][scenario] = payload_map
+        for (scenario, header), payload_map in (scenario_time or {}).items():
+            time_by_h[header][scenario] = payload_map
 
-        tp_path = out_dir / f"{prefix}_throughput.html"
-        time_path = out_dir / f"{prefix}_time.html"
-
-        fig_tp.write_html(str(tp_path), include_plotlyjs="cdn", config={"responsive": False})
-        fig_time.write_html(str(time_path), include_plotlyjs="cdn", config={"responsive": False})
-
-        print(f"[{label}] Saved throughput: {tp_path}")
-        print(f"[{label}] Saved copy time:  {time_path}")
-
-    # --- New scenario plots: one pair per header size ---
-    # Each key is (scenario, header). We split by header so users can compare
-    # scenarios at a fixed H; X axis is payload size.
-    scenario_tp = data_by_cat["scenario"]["tp"]
-    scenario_time = data_by_cat["scenario"]["time"]
-    if not scenario_tp:
-        return
-
-    tp_by_h: dict[int, dict] = defaultdict(dict)
-    time_by_h: dict[int, dict] = defaultdict(dict)
-    for (scenario, header), payload_map in scenario_tp.items():
-        tp_by_h[header][scenario] = payload_map
-    for (scenario, header), payload_map in scenario_time.items():
-        time_by_h[header][scenario] = payload_map
-
-    for header in sorted(tp_by_h):
-        tp_series = tp_by_h[header]
-        time_series = time_by_h[header]
-
-        fig_tp = build_figure(
-            tp_series,
-            scenario_color,
-            caches,
-            f"Packet Copy Throughput vs Payload Size "
-            f"(H={header}, processed=H+P)",
-            "Throughput (GB/s)",
-            y_log=False,
-            label_fn=lambda key: key,
-        )
-        fig_time = build_figure(
-            time_series,
-            scenario_color,
-            caches,
-            f"Packet Copy Time vs Payload Size (H={header}, processed=H+P)",
-            "Time (ns)",
-            y_log=True,
-            label_fn=lambda key: key,
-        )
-
-        tp_path = out_dir / f"packet_scenario_h{header}_throughput.html"
-        time_path = out_dir / f"packet_scenario_h{header}_time.html"
-
-        fig_tp.write_html(str(tp_path), include_plotlyjs="cdn", config={"responsive": False})
-        fig_time.write_html(str(time_path), include_plotlyjs="cdn", config={"responsive": False})
-
-        print(f"[Scenario H={header}] Saved throughput: {tp_path}")
-        print(f"[Scenario H={header}] Saved copy time:  {time_path}")
+        suffix = suffix_for(metric)
+        for header in sorted(tp_by_h):
+            fig_tp = build_figure(
+                tp_by_h[header], scenario_color, caches,
+                metric_title(f"Packet Copy Throughput vs Payload Size "
+                             f"(H={header}, processed=H+P)", metric),
+                "Throughput (GB/s)", y_log=False,
+                label_fn=lambda key: str(key),
+            )
+            fig_time = build_figure(
+                time_by_h[header], scenario_color, caches,
+                metric_title(f"Packet Copy Time vs Payload Size "
+                             f"(H={header}, processed=H+P)", metric),
+                METRIC_LABELS.get(metric, "Time (ns)") + " (ns)",
+                y_log=True,
+                label_fn=lambda key: str(key),
+            )
+            tp_path = out_dir / (
+                f"packet_scenario_h{header}_throughput{suffix}.html")
+            time_path = out_dir / (
+                f"packet_scenario_h{header}_time{suffix}.html")
+            fig_tp.write_html(str(tp_path), include_plotlyjs="cdn",
+                              config={"responsive": False})
+            fig_time.write_html(str(time_path), include_plotlyjs="cdn",
+                                config={"responsive": False})
+            print(f"[Scenario H={header}] {METRIC_LABELS.get(metric, metric)} "
+                  f"throughput: {tp_path}")
+            print(f"[Scenario H={header}] {METRIC_LABELS.get(metric, metric)} "
+                  f"copy time:  {time_path}")
 
 
 if __name__ == "__main__":
-    src = sys.argv[1] if len(sys.argv) > 1 else "results/all_methods_benchmark.json"
+    src = sys.argv[1] if len(sys.argv) > 1 else "results/example.json"
     dst = sys.argv[2] if len(sys.argv) > 2 else "reports"
     plot(src, dst)
