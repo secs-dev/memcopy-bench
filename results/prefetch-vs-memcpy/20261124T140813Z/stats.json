@@ -1,0 +1,45 @@
+{
+  "schema": "memcopy-bench/stats/v1",
+  "generated_at": "2026-11-24T14:08:16.162259+00:00",
+  "experiment": "prefetch-vs-memcpy",
+  "config": {
+    "runs": 3,
+    "warmup_runs": 1,
+    "repetitions": 3,
+    "isolation": "batch",
+    "seed": 1234,
+    "stats": {
+      "percentiles": [
+        5.0,
+        25.0,
+        50.0,
+        75.0,
+        95.0
+      ],
+      "trim": "none",
+      "ci_level": 0.95,
+      "min_meaningful_n": 10,
+      "load_avg_threshold": 0.25
+    }
+  },
+  "totals": {
+    "observations": 0,
+    "warmup_observations": 0,
+    "benchmarks": 0,
+    "failed_launches": 0
+  },
+  "environment": {
+    "rounds": {},
+    "caches": [],
+    "num_cpus": null
+  },
+  "benchmarks": {},
+  "warnings": [
+    "no measurements at results/prefetch-vs-memcpy/20261124T140813Z/measurements.jsonl"
+  ],
+  "gaps": [],
+  "external_meta": {
+    "run_dir": "results/prefetch-vs-memcpy/20261124T140813Z",
+    "failures": []
+  }
+}

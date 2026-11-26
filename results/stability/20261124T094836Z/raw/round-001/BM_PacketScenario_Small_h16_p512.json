@@ -1,0 +1,152 @@
+{
+  "context": {
+    "date": "2026-11-24T12:51:11+03:00",
+    "host_name": "Vostro-3590",
+    "executable": "bazel-bin/benchmarks/scenarious/packet_scenario_benchmark",
+    "num_cpus": 8,
+    "mhz_per_cpu": 4200,
+    "cpu_scaling_enabled": true,
+    "aslr_enabled": false,
+    "caches": [
+      {
+        "type": "Data",
+        "level": 1,
+        "size": 32768,
+        "num_sharing": 2
+      },
+      {
+        "type": "Instruction",
+        "level": 1,
+        "size": 32768,
+        "num_sharing": 2
+      },
+      {
+        "type": "Unified",
+        "level": 2,
+        "size": 262144,
+        "num_sharing": 2
+      },
+      {
+        "type": "Unified",
+        "level": 3,
+        "size": 6291456,
+        "num_sharing": 8
+      }
+    ],
+    "load_avg": [1.60352,4.20361,5.39307],
+    "library_version": "1.9.5",
+    "library_build_type": "release",
+    "json_schema_version": 1
+  },
+  "benchmarks": [
+    {
+      "name": "BM_PacketScenario/Small/h16/p512",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PacketScenario/Small/h16/p512",
+      "run_type": "iteration",
+      "repetitions": 3,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 60250315,
+      "real_time": 2.1192210346750688e+01,
+      "cpu_time": 2.1186561613827248e+01,
+      "time_unit": "ns",
+      "bytes_per_second": 2.4921457744016605e+10
+    },
+    {
+      "name": "BM_PacketScenario/Small/h16/p512",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PacketScenario/Small/h16/p512",
+      "run_type": "iteration",
+      "repetitions": 3,
+      "repetition_index": 1,
+      "threads": 1,
+      "iterations": 60250315,
+      "real_time": 2.0733922769308325e+01,
+      "cpu_time": 2.0728560290514668e+01,
+      "time_unit": "ns",
+      "bytes_per_second": 2.5472101901916042e+10
+    },
+    {
+      "name": "BM_PacketScenario/Small/h16/p512",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PacketScenario/Small/h16/p512",
+      "run_type": "iteration",
+      "repetitions": 3,
+      "repetition_index": 2,
+      "threads": 1,
+      "iterations": 60250315,
+      "real_time": 1.9694747684153949e+01,
+      "cpu_time": 1.9689585158185480e+01,
+      "time_unit": "ns",
+      "bytes_per_second": 2.6816207439520199e+10
+    },
+    {
+      "name": "BM_PacketScenario/Small/h16/p512_mean",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PacketScenario/Small/h16/p512",
+      "run_type": "aggregate",
+      "repetitions": 3,
+      "threads": 1,
+      "aggregate_name": "mean",
+      "aggregate_unit": "time",
+      "iterations": 3,
+      "real_time": 2.0540293600070992e+01,
+      "cpu_time": 2.0534902354175795e+01,
+      "time_unit": "ns",
+      "bytes_per_second": 2.5736589028484283e+10
+    },
+    {
+      "name": "BM_PacketScenario/Small/h16/p512_median",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PacketScenario/Small/h16/p512",
+      "run_type": "aggregate",
+      "repetitions": 3,
+      "threads": 1,
+      "aggregate_name": "median",
+      "aggregate_unit": "time",
+      "iterations": 3,
+      "real_time": 2.0733922769308325e+01,
+      "cpu_time": 2.0728560290514668e+01,
+      "time_unit": "ns",
+      "bytes_per_second": 2.5472101901916042e+10
+    },
+    {
+      "name": "BM_PacketScenario/Small/h16/p512_stddev",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PacketScenario/Small/h16/p512",
+      "run_type": "aggregate",
+      "repetitions": 3,
+      "threads": 1,
+      "aggregate_name": "stddev",
+      "aggregate_unit": "time",
+      "iterations": 3,
+      "real_time": 7.6727947832094845e-01,
+      "cpu_time": 7.6704770022267621e-01,
+      "time_unit": "ns",
+      "bytes_per_second": 9.7467132010887182e+08
+    },
+    {
+      "name": "BM_PacketScenario/Small/h16/p512_cv",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PacketScenario/Small/h16/p512",
+      "run_type": "aggregate",
+      "repetitions": 3,
+      "threads": 1,
+      "aggregate_name": "cv",
+      "aggregate_unit": "percentage",
+      "iterations": 3,
+      "real_time": 3.7354844738845240e-02,
+      "cpu_time": 3.7353364870843724e-02,
+      "time_unit": "ns",
+      "bytes_per_second": 3.7871037184847710e-02
+    }
+  ]
+}

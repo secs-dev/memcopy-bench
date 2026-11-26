@@ -41,6 +41,34 @@ bench-plot filter="" out="results/all_methods_benchmark.json" reports="reports":
     just bench "{{ filter }}" "{{ out }}"
     just plot "{{ out }}" "{{ reports }}"
 
+# Run a multi-run experiment described by a JSON config
+experiment config="scenarious/example_scenario.json" results="results" reports="reports":
+    @if [ -x ".venv/bin/python" ]; then \
+        .venv/bin/python tools/run_experiment.py {{ config }} \
+            --results-dir {{ results }} --reports-dir {{ reports }}; \
+    else \
+        python3 tools/run_experiment.py {{ config }} \
+            --results-dir {{ results }} --reports-dir {{ reports }}; \
+    fi
+
+# Recompute statistics for the latest run of an experiment
+stats config="scenarious/example_scenario.json" results="results":
+    @if [ -x ".venv/bin/python" ]; then \
+        .venv/bin/python tools/run_experiment.py {{ config }} \
+            --results-dir {{ results }} --stats-only --skip-plot; \
+    else \
+        python3 tools/run_experiment.py {{ config }} \
+            --results-dir {{ results }} --stats-only --skip-plot; \
+    fi
+
+# Unit tests for the statistics layer
+stats-test:
+    @if [ -x ".venv/bin/python" ]; then \
+        .venv/bin/python -m unittest discover -s tools/tests -v; \
+    else \
+        python3 -m unittest discover -s tools/tests -v; \
+    fi
+
 # Refresh compile_commands.json for clangd and IDE completion
 compile-commands:
     bazel run @hedron_compile_commands//:refresh_all

@@ -1,0 +1,99 @@
+{
+  "experiment": {
+    "name": "prefetch-vs-memcpy",
+    "binary": "bazel-bin/benchmarks/scenarious/packet_scenario_benchmark",
+    "scenarios": [
+      "Memcpy",
+      "ComposedPrefetch",
+      "ComposedStream"
+    ],
+    "header_sizes": [
+      8,
+      16
+    ],
+    "payload_sizes": [
+      64,
+      128,
+      256,
+      512,
+      1024,
+      2048,
+      4096,
+      8192,
+      16384,
+      32768
+    ],
+    "min_time": "0.5s",
+    "env": {
+      "taskset_cpus": [
+        2
+      ],
+      "governor": "performance",
+      "no_turbo": true
+    },
+    "runs": 3,
+    "warmup_runs": 1,
+    "repetitions": 3,
+    "cooldown_s": 1,
+    "isolation": "batch",
+    "interleave": true,
+    "seed": 1234,
+    "timeout_s": 3600,
+    "on_trial_failure": "skip",
+    "stats": {
+      "percentiles": [
+        5,
+        25,
+        50,
+        75,
+        95
+      ],
+      "trim": "none",
+      "ci_level": 0.95,
+      "min_meaningful_n": 10,
+      "load_avg_threshold": 0.25
+    }
+  },
+  "environment": {
+    "original": {
+      "governor": "powersave",
+      "no_turbo": "0"
+    },
+    "applied": {
+      "governor": "set to performance",
+      "no_turbo": "no_turbo=1",
+      "taskset_cpus": [
+        2
+      ]
+    },
+    "skipped": {},
+    "run_status": "interrupted",
+    "restored": {
+      "governor": "restored 8 cores",
+      "no_turbo": "restored no_turbo=0"
+    },
+    "failed_restore": {}
+  },
+  "system": {
+    "adapter": "linux",
+    "platform": "Linux-7.0.0-43-generic-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "python_version": "3.12.3",
+    "timestamp": "2026-11-24T15:47:43.360968+00:00",
+    "cpu_model": "Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz",
+    "git_sha": "0625d4e9880a43af8cb45b57426cd7317339b206",
+    "bazel_version": "bazel 9.3.0"
+  },
+  "run": {
+    "directory": "results/prefetch-vs-memcpy/20261124T154145Z",
+    "rounds": 4,
+    "warmup_rounds": 1,
+    "measured_rounds": 3,
+    "repetitions": 3,
+    "isolation": "batch",
+    "seed": 1234,
+    "benchmarks": 60,
+    "measurements": 360,
+    "failures": []
+  }
+}
