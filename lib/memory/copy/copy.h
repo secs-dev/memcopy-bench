@@ -355,6 +355,165 @@ inline void *copy_avx2_prefetch(void *dest, const void *src, size_t len) {
   return dest;
 }
 
+namespace detail {
+
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((target("avx2")))
+#endif
+inline void copy_256_unrolled(uint8_t *d, const uint8_t *s) {
+  __m256i v0 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s));
+  __m256i v1 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s + 32));
+  __m256i v2 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s + 64));
+  __m256i v3 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s + 96));
+  __m256i v4 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s + 128));
+  __m256i v5 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s + 160));
+  __m256i v6 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s + 192));
+  __m256i v7 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s + 224));
+  _mm256_storeu_si256(reinterpret_cast<__m256i *>(d), v0);
+  _mm256_storeu_si256(reinterpret_cast<__m256i *>(d + 32), v1);
+  _mm256_storeu_si256(reinterpret_cast<__m256i *>(d + 64), v2);
+  _mm256_storeu_si256(reinterpret_cast<__m256i *>(d + 96), v3);
+  _mm256_storeu_si256(reinterpret_cast<__m256i *>(d + 128), v4);
+  _mm256_storeu_si256(reinterpret_cast<__m256i *>(d + 160), v5);
+  _mm256_storeu_si256(reinterpret_cast<__m256i *>(d + 192), v6);
+  _mm256_storeu_si256(reinterpret_cast<__m256i *>(d + 224), v7);
+}
+
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((target("avx2")))
+#endif
+inline void copy_avx2_unrolled_small_impl(uint8_t *d, const uint8_t *s,
+                                          size_t len) {
+  if (len == 128) {
+    __m256i v0 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s));
+    __m256i v1 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s + 32));
+    __m256i v2 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s + 64));
+    __m256i v3 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s + 96));
+    _mm256_storeu_si256(reinterpret_cast<__m256i *>(d), v0);
+    _mm256_storeu_si256(reinterpret_cast<__m256i *>(d + 32), v1);
+    _mm256_storeu_si256(reinterpret_cast<__m256i *>(d + 64), v2);
+    _mm256_storeu_si256(reinterpret_cast<__m256i *>(d + 96), v3);
+    return;
+  }
+  if (len == 256) {
+    copy_256_unrolled(d, s);
+    return;
+  }
+  if (len == 512) {
+    copy_256_unrolled(d, s);
+    copy_256_unrolled(d + 256, s + 256);
+    return;
+  }
+
+  const uint8_t *s_end = s + len;
+  uint8_t *d_end = d + len;
+  if (len >= 256) {
+    copy_256_unrolled(d, s);
+    d += 256;
+    s += 256;
+    len -= 256;
+  }
+  while (len > 32) {
+    __m256i v = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s));
+    _mm256_storeu_si256(reinterpret_cast<__m256i *>(d), v);
+    d += 32;
+    s += 32;
+    len -= 32;
+  }
+  if (len > 0) {
+    __m256i tail =
+        _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s_end - 32));
+    _mm256_storeu_si256(reinterpret_cast<__m256i *>(d_end - 32), tail);
+  }
+}
+
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((target("avx2")))
+#endif
+inline void copy_avx2_aligned_temporal_t0_impl(uint8_t *d, const uint8_t *s,
+                                               size_t len) {
+  __m256i head = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s));
+  const size_t align_off = 32 - (reinterpret_cast<uintptr_t>(d) & 31);
+  const uint8_t *s_end = s + len;
+  uint8_t *d_end = d + len;
+
+  _mm256_storeu_si256(reinterpret_cast<__m256i *>(d), head);
+  d += align_off;
+  s += align_off;
+  len -= align_off;
+
+  constexpr size_t kDist = 512;
+  while (len >= 256) {
+    _mm_prefetch(reinterpret_cast<const char *>(s + kDist), _MM_HINT_T0);
+    _mm_prefetch(reinterpret_cast<const char *>(s + kDist + 64), _MM_HINT_T0);
+    _mm_prefetch(reinterpret_cast<const char *>(s + kDist + 128), _MM_HINT_T0);
+    _mm_prefetch(reinterpret_cast<const char *>(s + kDist + 192), _MM_HINT_T0);
+    __m256i v0 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s));
+    __m256i v1 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s + 32));
+    __m256i v2 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s + 64));
+    __m256i v3 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s + 96));
+    __m256i v4 =
+        _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s + 128));
+    __m256i v5 =
+        _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s + 160));
+    __m256i v6 =
+        _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s + 192));
+    __m256i v7 =
+        _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s + 224));
+    _mm256_storeu_si256(reinterpret_cast<__m256i *>(d), v0);
+    _mm256_storeu_si256(reinterpret_cast<__m256i *>(d + 32), v1);
+    _mm256_storeu_si256(reinterpret_cast<__m256i *>(d + 64), v2);
+    _mm256_storeu_si256(reinterpret_cast<__m256i *>(d + 96), v3);
+    _mm256_storeu_si256(reinterpret_cast<__m256i *>(d + 128), v4);
+    _mm256_storeu_si256(reinterpret_cast<__m256i *>(d + 160), v5);
+    _mm256_storeu_si256(reinterpret_cast<__m256i *>(d + 192), v6);
+    _mm256_storeu_si256(reinterpret_cast<__m256i *>(d + 224), v7);
+    d += 256;
+    s += 256;
+    len -= 256;
+  }
+
+  while (len > 32) {
+    __m256i v = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s));
+    _mm256_storeu_si256(reinterpret_cast<__m256i *>(d), v);
+    d += 32;
+    s += 32;
+    len -= 32;
+  }
+  if (len > 0) {
+    __m256i tail =
+        _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s_end - 32));
+    _mm256_storeu_si256(reinterpret_cast<__m256i *>(d_end - 32), tail);
+  }
+}
+
+} // namespace detail
+
+/**
+ * Branchless unrolled unaligned AVX2 copy optimized for 128..512 B payloads.
+ */
+inline void *copy_avx2_unrolled_small(void *dest, const void *src, size_t len) {
+  if (len < 32) {
+    return copy_small_overlapping(dest, src, len);
+  }
+  detail::copy_avx2_unrolled_small_impl(static_cast<uint8_t *>(dest),
+                                        static_cast<const uint8_t *>(src), len);
+  return dest;
+}
+
+/**
+ * 32B-aligned 8x-unrolled AVX2 temporal copy with L1d (T0) prefetch.
+ */
+inline void *copy_avx2_aligned_temporal_t0(void *dest, const void *src,
+                                           size_t len) {
+  if (len < 32) {
+    return copy_small_overlapping(dest, src, len);
+  }
+  detail::copy_avx2_aligned_temporal_t0_impl(
+      static_cast<uint8_t *>(dest), static_cast<const uint8_t *>(src), len);
+  return dest;
+}
+
 #endif // defined(__x86_64__) || defined(_M_X64)
 
 } // namespace memory_bench

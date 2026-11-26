@@ -77,6 +77,7 @@ const ScenarioCase kScenarios[] = {
          Small, 64,
          AlignTarget<Small, AVX2PrefetchAbove<1024>, Small, 32>>::copy,
      true},
+    {"VioletCopy", VioletCopy::copy, true},
 #endif
 };
 

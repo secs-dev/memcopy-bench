@@ -113,6 +113,7 @@ static const bool RegisteredScenarios = [] {
   // the report) is a separate follow-up. Without this check, running on a host
   // that lacks AVX2 would SIGILL inside AVX2PrefetchAbove.
   if (__builtin_cpu_supports("avx2")) {
+    RegisterScenarioBothH<sc::VioletCopy>("VioletCopy");
     RegisterScenarioBothH<ComposedPrefetch>("ComposedPrefetch");
     RegisterScenarioBothH<ComposedStream>("ComposedStream");
     RegisterScenarioBothH<MemcpyEdgesAVXBody>("MemcpyEdgesAVXBody");
