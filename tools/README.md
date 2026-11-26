@@ -225,11 +225,32 @@ Number of observations per benchmark: `runs x repetitions`.
 | `taskset_cpus` | list of int | `[]` | `taskset -c` (no affinity when empty) | skipped | `SetProcessAffinityMask` after spawn |
 | `governor` | string or null | `null` | `cpupower frequency-set -g <value>` | skipped | power plan name (`high_performance`, `balanced`, `power_saver`) or a raw GUID via `powercfg` |
 | `no_turbo` | bool or null | `null` | `/sys/.../intel_pstate/no_turbo` | skipped | skipped |
+| `nice` | int or null | `null` | `os.nice` in the child (`-20..19`; negative needs privilege) | `os.nice` in the child | skipped |
 
 Original values are captured before applying and restored afterwards. Anything
 that cannot be applied is recorded under `skipped` in `meta.json`, never
 silently ignored. On unsupported platforms the run proceeds and reports the
-reason.
+reason. Niceness only affects the benchmark child process, so there is nothing
+to restore.
+
+### CPU topology and isolation
+
+For every run, `collect_system_info()` also records `system.topology` in
+`meta.json`:
+
+- online and isolated CPUs (`/sys/devices/system/cpu/online` and `isolated`);
+- `isolcpus=` boot parameter and `smt/control`;
+- NUMA nodes and each CPU's `core_id`, package and `thread_siblings_list`;
+- the requested `taskset_cpus`, their siblings, `all_online`, `any_isolated`
+  and `co_located_cpus` if several pinned CPUs share one physical core;
+- the orchestrator affinity, cgroup cpuset (`cpuset.cpus.effective`) and SMT
+  control state.
+
+Linux reads this from sysfs. macOS reports `hw.physicalcpu`/`hw.logicalcpu`
+and notes that per-CPU affinity and SMT siblings are unavailable. Windows
+reports logical/physical counts and that affinity is applied after spawn.
+Collection is best effort: a platform that cannot provide a field records the
+reason instead of failing the experiment.
 
 ### `stats` keys
 

@@ -100,13 +100,27 @@ class BuildReportTest(unittest.TestCase):
 
             stats_path.write_text(json.dumps(stats_fixture()), encoding="utf-8")
             meta_path.write_text(json.dumps({
-                "experiment": {"name": "demo", "runs": 1},
+                "experiment": {
+                    "name": "demo", "runs": 1,
+                    "scenarios": ["Memcpy", "ComposedPrefetch"],
+                    "min_time": "0.05s",
+                    "env": {
+                        "taskset_cpus": [2],
+                        "governor": "performance",
+                        "no_turbo": True,
+                    },
+                },
                 "run": {"benchmarks": 1},
-                "system": {"platform": "Linux", "machine": "x86_64"},
+                "system": {
+                    "platform": "Linux", "machine": "x86_64",
+                    "git_sha": "deadbeef",
+                },
                 "environment": {"applied": {"taskset_cpus": [2]}},
             }), encoding="utf-8")
-            (plots_dir / "packet_scenario_h8_time_cpu.html").write_text(
+            (plots_dir / "packet_scenario_time_cpu_mean_std.html").write_text(
                 "<html><body>plot</body></html>", encoding="utf-8")
+            (plots_dir / "packet_scenario_time_cpu_median_percentiles.html"
+             ).write_text("<html><body>plot</body></html>", encoding="utf-8")
 
             code = br.main([
                 str(stats_path), str(plots_dir),
@@ -118,10 +132,20 @@ class BuildReportTest(unittest.TestCase):
             self.assertIn("Scenarios and measurements", report)
             self.assertIn("srcdoc=", report)
             self.assertIn("Packet Copy time vs Payload Size", report)
-            self.assertIn("Memcpy", report)
+            self.assertIn("libc memcpy (baseline)", report)
+            self.assertIn(
+                "AVX2 + 4x unroll + prefetch", report)
+            self.assertIn("CPUs 2", report)
+            self.assertIn("governor performance", report)
+            self.assertIn("turbo disabled", report)
+            self.assertIn("mean ± std", report)
+            self.assertIn("median and percentiles", report)
             self.assertIn("p05", report)
             self.assertIn("σ within", report)
             self.assertIn("demo warning", report)
+            self.assertNotIn("embedded plots", report)
+            self.assertIn("min_time", report)
+            self.assertNotIn("deadbeef", report)
 
 
 if __name__ == "__main__":

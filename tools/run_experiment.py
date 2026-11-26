@@ -26,6 +26,7 @@ them applied across runs.
 """
 import argparse
 import json
+import os
 import platform
 import random
 import re
@@ -53,6 +54,7 @@ DEFAULT_CONFIG = {
         "taskset_cpus": [],      # empty = no affinity
         "governor": None,        # None = leave alone
         "no_turbo": None,        # None = leave alone, bool = apply
+        "nice": None,            # None = leave alone, int = -20..19
     },
     "runs": 1,                   # measured rounds (process launches)
     "warmup_runs": 2,            # discarded rounds before the measured ones
@@ -113,6 +115,14 @@ def validate_config(cfg):
         errors.append("'timeout_s' must be > 0")
     if cfg["on_trial_failure"] not in ("skip", "abort"):
         errors.append("'on_trial_failure' must be 'skip' or 'abort'")
+    nice = cfg["env"].get("nice")
+    if nice is not None:
+        try:
+            nice_int = int(nice)
+            if not -20 <= nice_int <= 19:
+                errors.append(f"env.nice must be in [-20, 19], got {nice_int}")
+        except (TypeError, ValueError):
+            errors.append(f"env.nice must be an integer, got {nice!r}")
     if parse_min_time_seconds(cfg["min_time"]) is None and not re.fullmatch(
             r"\s*\d+\s*x\s*", str(cfg["min_time"])):
         errors.append(
@@ -167,6 +177,42 @@ def build_filter(cfg):
     ps = "|".join(str(p) for p in cfg["payload_sizes"])
     return rf"^BM_PacketScenario/({scen})/h({hs})/p({ps})$"
 
+
+def parse_cpu_list(text):
+    """Parse a Linux/Windows-style CPU list such as ``0-3,6,8-9``."""
+    cpus = set()
+    for part in str(text or "").split(","):
+        part = part.strip()
+        if not part:
+            continue
+        try:
+            if "-" in part:
+                first, last = part.split("-", 1)
+                cpus.update(range(int(first), int(last) + 1))
+            else:
+                cpus.add(int(part))
+        except ValueError:
+            continue
+    return sorted(cpus)
+
+
+def _read_text(path):
+    try:
+        return Path(path).read_text(encoding="utf-8", errors="replace").strip()
+    except (OSError, PermissionError):
+        return None
+
+
+def _read_int(path):
+    value = _read_text(path)
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except ValueError:
+        return None
+
+
 # --- Environment adapter base ---------------------------------------------
 
 
@@ -177,9 +223,11 @@ class EnvironmentAdapter:
     def __init__(self):
         # Restore state captured during apply(). Opaque to the caller.
         self._restore_plan = {}
+        self._applied_nice = None   # None or int, set by apply()
 
     def apply(self, env_cfg):
         """Returns {'original': ..., 'applied': ..., 'skipped': ...}."""
+        self._applied_nice = None
         applied, skipped = {}, {}
         if env_cfg.get("governor"):
             skipped["governor"] = f"not supported on {self.name}"
@@ -187,11 +235,21 @@ class EnvironmentAdapter:
             skipped["no_turbo"] = f"not supported on {self.name}"
         if env_cfg.get("taskset_cpus"):
             skipped["taskset_cpus"] = f"not supported on {self.name}"
+        if env_cfg.get("nice") is not None:
+            skipped["nice"] = f"nice not supported on {self.name}"
         return {"original": {}, "applied": applied, "skipped": skipped}
 
     def restore(self):
         """Returns (restored, failed) dicts. Called from main's finally."""
         return {}, {}
+
+    def topology_info(self, cpus):
+        """Platform-specific CPU topology observations. Returns {} by default."""
+        return {}
+
+    def check_nice(self, nice):
+        """Return (ok, reason) for applying nice to the child process."""
+        return False, f"nice not supported on {self.name}"
 
     def command(self, binary, args, cpus):
         """Return the command line to print and execute."""
@@ -204,6 +262,7 @@ class EnvironmentAdapter:
     def system_info(self):
         return {}
 
+
 # --- Linux ----------------------------------------------------------------
 
 
@@ -211,6 +270,8 @@ class LinuxEnvironment(EnvironmentAdapter):
     name = "linux"
     TURBO_PATH = Path("/sys/devices/system/cpu/intel_pstate/no_turbo")
     CPU_BASE = Path("/sys/devices/system/cpu")
+
+    # --- governor / turbo helpers ---
 
     def _read_governor_state(self):
         if not self.CPU_BASE.exists():
@@ -275,7 +336,103 @@ class LinuxEnvironment(EnvironmentAdapter):
         values = set(state.values())
         return values.pop() if len(values) == 1 else dict(state)
 
+    # --- topology ---
+
+    def topology_info(self, cpus):
+        info = {}
+        cpus = [int(c) for c in cpus]
+        if cpus:
+            info["requested_cpus"] = cpus
+            siblings, core_ids, package_ids = {}, {}, {}
+            for cpu in cpus:
+                base = self.CPU_BASE / f"cpu{cpu}" / "topology"
+                try:
+                    siblings[str(cpu)] = (
+                            base / "thread_siblings_list").read_text().strip()
+                except (FileNotFoundError, PermissionError, OSError):
+                    pass
+                try:
+                    core_ids[str(cpu)] = int(
+                        (base / "core_id").read_text().strip())
+                except (FileNotFoundError, PermissionError, OSError, ValueError):
+                    pass
+                try:
+                    package_ids[str(cpu)] = int(
+                        (base / "physical_package_id").read_text().strip())
+                except (FileNotFoundError, PermissionError, OSError, ValueError):
+                    pass
+            if siblings:
+                info["thread_siblings_list"] = siblings
+            if core_ids:
+                info["core_ids"] = core_ids
+            if package_ids:
+                info["physical_package_ids"] = package_ids
+
+            warnings = []
+            pinned = set(cpus)
+            for cpu in cpus:
+                sib_str = siblings.get(str(cpu), "")
+                sibs = [s.strip() for s in sib_str.split(",")
+                        if s.strip() and s.strip() != str(cpu)]
+                unmanaged = [s for s in sibs if int(s) not in pinned]
+                if unmanaged:
+                    warnings.append(
+                        f"CPU{cpu} shares a physical core with "
+                        f"CPU{','.join(unmanaged)} which is not pinned — "
+                        "SMT contention likely")
+            if warnings:
+                info["warnings"] = warnings
+
+        for name, rel in (
+                ("isolated_cpus", "isolated"),
+                ("online_cpus", "online"),
+                ("smt_control", "smt/control"),
+        ):
+            try:
+                value = (self.CPU_BASE / rel).read_text().strip()
+                if value:
+                    info[name] = value
+            except (FileNotFoundError, PermissionError, OSError):
+                pass
+
+        try:
+            nodes = sorted(
+                p.name for p in Path("/sys/devices/system/node").glob("node[0-9]*")
+                if p.is_dir()
+            )
+            if nodes:
+                info["numa_nodes"] = nodes
+        except (FileNotFoundError, PermissionError, OSError):
+            pass
+
+        try:
+            out = subprocess.run(
+                ["lscpu", "-J"], check=True, capture_output=True,
+                text=True, timeout=5,
+            ).stdout
+            info["lscpu"] = json.loads(out)
+        except (FileNotFoundError, subprocess.CalledProcessError,
+                subprocess.TimeoutExpired, json.JSONDecodeError):
+            pass
+
+        return info
+
+    def check_nice(self, nice):
+        if nice is None:
+            return False, "not requested"
+        try:
+            nice = int(nice)
+        except (TypeError, ValueError):
+            return False, f"invalid nice value {nice!r}"
+        if nice < 0 and os.geteuid() != 0:
+            return False, (f"nice {nice} requires root "
+                           f"(current euid={os.geteuid()})")
+        return True, (f"nice {nice} (root)" if nice < 0 else f"nice {nice}")
+
+    # --- apply / restore ---
+
     def apply(self, env_cfg):
+        self._applied_nice = None
         applied, skipped, original = {}, {}, {}
 
         if env_cfg.get("governor"):
@@ -306,8 +463,19 @@ class LinuxEnvironment(EnvironmentAdapter):
 
         if env_cfg.get("taskset_cpus"):
             applied["taskset_cpus"] = env_cfg["taskset_cpus"]
+        if env_cfg.get("nice") is not None:
+            ok, reason = self.check_nice(env_cfg["nice"])
+            if ok:
+                applied["nice"] = reason
+                self._applied_nice = int(env_cfg["nice"])
+            else:
+                skipped["nice"] = reason
 
-        return {"original": original, "applied": applied, "skipped": skipped}
+        result = {"original": original, "applied": applied, "skipped": skipped}
+        topology = self.topology_info(env_cfg.get("taskset_cpus") or [])
+        if topology:
+            result["topology"] = topology
+        return result
 
     def restore(self):
         restored, failed = {}, {}
@@ -323,6 +491,8 @@ class LinuxEnvironment(EnvironmentAdapter):
         cmd = [str(binary), *args]
         if cpus:
             cmd = ["taskset", "-c", ",".join(str(c) for c in cpus), *cmd]
+        if self._applied_nice is not None:
+            cmd = ["nice", "-n", str(self._applied_nice), *cmd]
         return cmd
 
     def system_info(self):
@@ -337,13 +507,48 @@ class LinuxEnvironment(EnvironmentAdapter):
             pass
         return info
 
+
 # --- macOS ----------------------------------------------------------------
 
 
 class MacOSEnvironment(EnvironmentAdapter):
     name = "macos"
 
+    def topology_info(self, cpus):
+        info = {}
+        if cpus:
+            info["requested_cpus"] = [int(c) for c in cpus]
+        for key, sysctl in (
+                ("physical_cpus", "hw.physicalcpu"),
+                ("logical_cpus", "hw.logicalcpu"),
+                ("thread_count", "machdep.cpu.thread_count"),
+        ):
+            try:
+                out = subprocess.run(
+                    ["sysctl", "-n", sysctl], check=True,
+                    capture_output=True, text=True, timeout=2,
+                ).stdout.strip()
+                if out:
+                    info[key] = out
+            except (FileNotFoundError, subprocess.CalledProcessError,
+                    subprocess.TimeoutExpired):
+                pass
+        return info
+
+    def check_nice(self, nice):
+        if nice is None:
+            return False, "not requested"
+        try:
+            nice = int(nice)
+        except (TypeError, ValueError):
+            return False, f"invalid nice value {nice!r}"
+        if nice < 0 and os.geteuid() != 0:
+            return False, (f"nice {nice} requires root "
+                           f"(current euid={os.geteuid()})")
+        return True, (f"nice {nice} (root)" if nice < 0 else f"nice {nice}")
+
     def apply(self, env_cfg):
+        self._applied_nice = None
         applied, skipped = {}, {}
         if env_cfg.get("governor"):
             skipped["governor"] = "macos does not expose a cpu governor"
@@ -351,7 +556,25 @@ class MacOSEnvironment(EnvironmentAdapter):
             skipped["no_turbo"] = "macos does not expose turbo control"
         if env_cfg.get("taskset_cpus"):
             skipped["taskset_cpus"] = "macos does not support cpu affinity"
-        return {"original": {}, "applied": applied, "skipped": skipped}
+        if env_cfg.get("nice") is not None:
+            ok, reason = self.check_nice(env_cfg["nice"])
+            if ok:
+                applied["nice"] = reason
+                self._applied_nice = int(env_cfg["nice"])
+            else:
+                skipped["nice"] = reason
+
+        result = {"original": {}, "applied": applied, "skipped": skipped}
+        topology = self.topology_info(env_cfg.get("taskset_cpus") or [])
+        if topology:
+            result["topology"] = topology
+        return result
+
+    def command(self, binary, args, cpus):
+        cmd = [str(binary), *args]
+        if self._applied_nice is not None:
+            cmd = ["nice", "-n", str(self._applied_nice), *cmd]
+        return cmd
 
     def system_info(self):
         info = {}
@@ -366,11 +589,23 @@ class MacOSEnvironment(EnvironmentAdapter):
             pass
         return info
 
+
 # --- Windows --------------------------------------------------------------
 
 
 class WindowsEnvironment(EnvironmentAdapter):
     name = "windows"
+
+    # Mapping from Unix-style nice values to Windows priority classes.
+    # Reference: Win32 SetPriorityClass documentation.
+    PRIORITY_CLASSES = [
+        (-20, -15, 0x00000100, "realtime"),
+        (-14, -10, 0x00000080, "high"),
+        (-9, -1, 0x00008000, "above_normal"),
+        (0, 0, 0x00000020, "normal"),
+        (1, 10, 0x00004000, "below_normal"),
+        (11, 19, 0x00000040, "idle"),
+    ]
 
     # Windows power plan presets. Users may also pass a raw GUID as "governor".
     POWER_PLANS = {
@@ -378,6 +613,12 @@ class WindowsEnvironment(EnvironmentAdapter):
         "balanced": "381b4222-f694-41f0-9685-ff5bb260df2e",
         "power_saver": "a1841308-3541-4fab-bc81-f71556f20b4a",
     }
+
+    def _nice_to_priority_class(self, nice):
+        for lo, hi, cls, label in self.PRIORITY_CLASSES:
+            if lo <= nice <= hi:
+                return cls, label
+        return None, None
 
     def _read_active_plan(self):
         try:
@@ -404,7 +645,34 @@ class WindowsEnvironment(EnvironmentAdapter):
         except (FileNotFoundError, subprocess.CalledProcessError):
             return False
 
+    def topology_info(self, cpus):
+        info = {}
+        if cpus:
+            info["requested_cpus"] = [int(c) for c in cpus]
+        try:
+            count = os.cpu_count()
+            if count:
+                info["logical_processors"] = count
+        except OSError:
+            pass
+        return info
+
+    def check_nice(self, nice):
+        if nice is None:
+            return False, "not requested"
+        try:
+            nice = int(nice)
+        except (TypeError, ValueError):
+            return False, f"invalid nice value {nice!r}"
+        cls, label = self._nice_to_priority_class(nice)
+        if cls is None:
+            return False, f"nice {nice} outside [-20, 19]"
+        if label == "realtime":
+            return False, "realtime priority class not applied automatically"
+        return True, f"nice {nice} -> {label} priority class"
+
     def apply(self, env_cfg):
+        self._applied_nice = None
         applied, skipped, original = {}, {}, {}
 
         governor = env_cfg.get("governor")
@@ -427,8 +695,19 @@ class WindowsEnvironment(EnvironmentAdapter):
 
         if env_cfg.get("taskset_cpus"):
             applied["taskset_cpus"] = env_cfg["taskset_cpus"]
+        if env_cfg.get("nice") is not None:
+            ok, reason = self.check_nice(env_cfg["nice"])
+            if ok:
+                applied["nice"] = reason
+                self._applied_nice = int(env_cfg["nice"])
+            else:
+                skipped["nice"] = reason
 
-        return {"original": original, "applied": applied, "skipped": skipped}
+        result = {"original": original, "applied": applied, "skipped": skipped}
+        topology = self.topology_info(env_cfg.get("taskset_cpus") or [])
+        if topology:
+            result["topology"] = topology
+        return result
 
     def restore(self):
         restored, failed = {}, {}
@@ -441,20 +720,17 @@ class WindowsEnvironment(EnvironmentAdapter):
         return restored, failed
 
     def command(self, binary, args, cpus):
-        # Affinity is applied post-spawn in run(), so the command line is plain.
+        # Affinity and priority class are applied post-spawn in run(), so the
+        # command line is plain.
         return [str(binary), *args]
 
     def run(self, cmd, cpus, timeout=None):
-        if not cpus:
+        if not cpus and self._applied_nice is None:
             subprocess.run(cmd, check=True, timeout=timeout)
             return
 
         import ctypes  # windll is only available on Windows
         proc = subprocess.Popen(cmd)
-
-        mask = 0
-        for cpu in cpus:
-            mask |= 1 << cpu
 
         kernel32 = ctypes.windll.kernel32
         PROCESS_SET_INFORMATION = 0x0200
@@ -465,7 +741,15 @@ class WindowsEnvironment(EnvironmentAdapter):
             )
         if handle:
             try:
-                kernel32.SetProcessAffinityMask(handle, mask)
+                if cpus:
+                    mask = 0
+                    for cpu in cpus:
+                        mask |= 1 << cpu
+                    kernel32.SetProcessAffinityMask(handle, mask)
+                if self._applied_nice is not None:
+                    cls, _ = self._nice_to_priority_class(self._applied_nice)
+                    if cls is not None:
+                        kernel32.SetPriorityClass(handle, cls)
             finally:
                 kernel32.CloseHandle(handle)
 
@@ -491,7 +775,6 @@ class WindowsEnvironment(EnvironmentAdapter):
         except (FileNotFoundError, subprocess.CalledProcessError):
             pass
         return info
-
 # --- Adapter factory ------------------------------------------------------
 
 
@@ -694,6 +977,8 @@ def launch(adapter, binary, cfg, out_json, filter_re):
     cpus = cfg["env"].get("taskset_cpus") or []
     cmd = adapter.command(binary, benchmark_args(cfg, out_json, filter_re),
                           cpus)
+    # nice is applied by the adapter: via `nice -n N` in command() on POSIX,
+    # via SetPriorityClass in run() on Windows. Do not pass it again here.
     print("[run]", " ".join(str(part) for part in cmd), flush=True)
     try:
         adapter.run(cmd, cpus, timeout=float(cfg["timeout_s"]))
@@ -702,6 +987,10 @@ def launch(adapter, binary, cfg, out_json, filter_re):
         return False, f"timeout after {cfg['timeout_s']}s"
     except subprocess.CalledProcessError as e:
         return False, f"exit code {e.returncode}"
+    except subprocess.SubprocessError as e:
+        return False, f"failed to start: {e}"
+    except OSError as e:
+        return False, f"failed to start: {e}"
 
 
 def handle_failure(cfg, log, round_info, name, reason, failures):
@@ -814,7 +1103,7 @@ def resolve_run_dir(results_dir, cfg, args):
     return path
 
 
-def collect_system_info(adapter):
+def collect_system_info(adapter, cfg=None):
     info = {
         "adapter": adapter.name,
         "platform": platform.platform(),
@@ -823,6 +1112,14 @@ def collect_system_info(adapter):
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     info.update(adapter.system_info())
+
+    cpus = ((cfg or {}).get("env") or {}).get("taskset_cpus") or []
+    try:
+        topology = adapter.topology_info(cpus)
+    except Exception as e:  # never let diagnostics break the experiment
+        topology = {"error": f"{type(e).__name__}: {e}"}
+    if topology:
+        info["topology"] = topology
 
     for key, cmd in (
             ("git_sha", ["git", "rev-parse", "HEAD"]),
@@ -1038,7 +1335,7 @@ def main(argv):
                 for key, note in failed.items():
                     print(f"[env] WARNING {key} restore failed: {note}",
                           file=sys.stderr)
-            system = collect_system_info(adapter)
+            system = collect_system_info(adapter, cfg)
             write_meta(cfg, env_meta, system, run_dir, rounds, names, log,
                        failures, meta_path)
             print(f"[ok] meta: {meta_path}")

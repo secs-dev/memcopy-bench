@@ -33,7 +33,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-STATS_PLOT_RE =  re.compile(
+STATS_PLOT_RE = re.compile(
     r"^(?P<prefix>packet_scenario|copy)"
     r"(?:_h(?P<header>\d+))?"
     r"_(?P<quantity>throughput|time)"
@@ -44,14 +44,16 @@ LEGACY_SCENARIO_RE = re.compile(
 LEGACY_METHOD_RE = re.compile(
     r"^copy(_fixed)?_(throughput|time)(?:_(cpu|real))?\.html$")
 
+
 @dataclass
 class Plot:
     path: Path
-    category: str          # "scenario" | "dynamic" | "fixed"
-    header: int | None     # set only for legacy per-H scenario plots
+    category: str  # "scenario" | "dynamic" | "fixed"
+    header: int | None  # set only for legacy per-H scenario plots
     fixed: bool
     quantity: str
     metric: str
+    variant: str | None = None  # "mean_std" | "median_percentiles"
 
     @property
     def title(self) -> str:
@@ -64,8 +66,12 @@ class Plot:
             suffix = " (Fixed Size)" if self.fixed else " (Dynamic Size)"
         else:
             suffix = ""
+        variant = (f" — {VARIANT_LABELS[self.variant]}"
+                   if self.variant else "")
         return (f"{which} {QUANTITY_LABELS[self.quantity]} vs {axis}"
-                f"{suffix} [{METRIC_LABELS.get(self.metric, self.metric)}]")
+                f"{suffix} [{METRIC_LABELS.get(self.metric, self.metric)}]"
+                f"{variant}")
+
 
 def classify_plot_file(path: Path) -> Plot | None:
     name = path.name
@@ -80,6 +86,7 @@ def classify_plot_file(path: Path) -> Plot | None:
             fixed=False,
             quantity=m.group("quantity"),
             metric=m.group("metric"),
+            variant=m.group("variant"),
         )
     m = LEGACY_SCENARIO_RE.match(name)
     if m:
@@ -104,37 +111,34 @@ def classify_plot_file(path: Path) -> Plot | None:
         )
     return None
 
+
 PERCENTILE_RE = re.compile(r"^p(\d+(?:\.\d+)?)$")
 METHOD_RE = re.compile(r"^(BM_\w+)/(\d+)")
 
 METRIC_LABELS = {"cpu": "CPU time", "real": "Real time"}
 QUANTITY_LABELS = {"throughput": "Throughput", "time": "Copy time"}
 QUANTITY_UNITS = {"throughput": "GB/s", "time": "ns"}
+VARIANT_LABELS = {
+    "mean_std": "mean ± std",
+    "median_percentiles": "median and percentiles",
+}
 
+SCENARIO_LABELS = {
+    "Naive": "Naive byte loop",
+    "Memcpy": "libc memcpy (baseline)",
+    "Small": "Small overlapping copy",
+    "Words64": "64-bit word copy",
+    "ComposedPrefetch": "AVX2 + 4x unroll + prefetch",
+    "ComposedStream": "AVX2 streaming (non-temporal stores)",
+    "MemcpyEdgesAVXBody": "libc edges + AVX2/prefetch body",
+    "AVXEdgesMemcpyBody": "AVX2/prefetch edges + libc body",
+    "SSEEdgesMemcpyBody": "SSE2 edges + libc body",
+    "ComposedSSE": "SSE2 aligned copy",
+    "MemcpyEdgesSSEBody": "libc edges + SSE2 body",
+}
 
-# @dataclass
-# class Plot:
-#     path: Path
-#     header: int | None
-#     fixed: bool
-#     quantity: str
-#     metric: str
-#
-#     @property
-#     def category(self) -> str:
-#         if self.header is not None:
-#             return "scenario"
-#         return "fixed" if self.fixed else "dynamic"
-#
-#     @property
-#     def title(self) -> str:
-#         axis = "Payload Size" if self.header is not None else "Buffer Size"
-#         which = "Packet" if self.header is not None else "Memory"
-#         suffix = f" (H={self.header})" if self.header is not None else (
-#             " (Fixed Size)" if self.fixed else " (Dynamic Size)")
-#         return (f"{which} {QUANTITY_LABELS[self.quantity]} vs {axis}"
-#                 f"{suffix} [{METRIC_LABELS.get(self.metric, self.metric)}]")
-#
+SYSTEM_HIDDEN_KEYS = {"git_sha", "git_commit", "git_revision", "revision"}
+
 
 # --- Formatting helpers ----------------------------------------------------
 
@@ -210,6 +214,7 @@ def discover_plots(plots_dir: Path, output: Path) -> tuple[list[Plot], list[Path
         p.header or 0,
         0 if p.quantity == "throughput" else 1,
         0 if p.metric == "cpu" else 1,
+        0 if p.variant == "mean_std" else 1,
     ))
     return plots, skipped
 
@@ -313,17 +318,121 @@ def render_plot_table(stats: dict, plot: Plot) -> tuple[str, int]:
 # --- Report sections --------------------------------------------------------
 
 
+def scenario_label(name: str) -> str:
+    return SCENARIO_LABELS.get(name, name)
+
+
+def readable_env(env) -> str:
+    """Turn the structured ``env`` object into one readable line."""
+    if not isinstance(env, dict):
+        return fmt(env)
+    parts = []
+    for key, value in env.items():
+        if value is None:
+            continue
+        if key == "taskset_cpus":
+            cpus = value if isinstance(value, (list, tuple)) else [value]
+            parts.append("CPUs " + ", ".join(str(cpu) for cpu in cpus))
+        elif key == "governor":
+            parts.append(f"governor {value}")
+        elif key == "no_turbo":
+            parts.append("turbo " + ("disabled" if value else "enabled"))
+        else:
+            parts.append(f"{key}: {value}")
+    return "; ".join(parts) if parts else "not set"
+
+
+def experiment_items(experiment: dict) -> dict:
+    """Readable view of the experiment config."""
+    items = {}
+    for key, value in experiment.items():
+        if key == "scenarios" and isinstance(value, list):
+            items["scenarios"] = ", ".join(scenario_label(s) for s in value)
+        elif key == "env":
+            items["env"] = readable_env(value)
+        else:
+            items[key] = value
+    return items
+
+
+def topology_section(topology: dict) -> str:
+    if not topology:
+        return ""
+    parts = []
+
+    if topology.get("warnings"):
+        parts.append("<ul>" + "".join(
+            f"<li><b>{esc(w)}</b></li>" for w in topology["warnings"]) + "</ul>")
+
+    cpus = topology.get("requested_cpus")
+    if cpus:
+        parts.append("<p><b>Requested CPUs:</b> "
+                     + esc(", ".join(str(c) for c in cpus)) + "</p>")
+
+    siblings = topology.get("thread_siblings_list")
+    if siblings:
+        rows = [[cpu, sib] for cpu, sib
+                in sorted(siblings.items(), key=lambda kv: int(kv[0]))]
+        parts.append("<h4>SMT siblings</h4>")
+        parts.append(data_table(["CPU", "Thread siblings"], rows))
+
+    core_ids = topology.get("core_ids") or {}
+    package_ids = topology.get("physical_package_ids") or {}
+    if core_ids or package_ids:
+        cpus_sorted = sorted(set(core_ids) | set(package_ids), key=int)
+        rows = [[cpu, core_ids.get(cpu), package_ids.get(cpu)]
+                for cpu in cpus_sorted]
+        parts.append("<h4>Core / package mapping</h4>")
+        parts.append(data_table(["CPU", "core_id", "package_id"], rows))
+
+    global_rows = []
+    for key in ("isolated_cpus", "online_cpus", "smt_control", "numa_nodes",
+                "logical_processors", "physical_cpus", "logical_cpus"):
+        if topology.get(key) is not None:
+            global_rows.append([key, topology[key]])
+    if global_rows:
+        parts.append("<h4>Global CPU state</h4>")
+        parts.append(data_table(["Parameter", "Value"], global_rows))
+
+    lscpu = topology.get("lscpu")
+    if lscpu:
+        parts.append("<details><summary>lscpu -J</summary>"
+                     f"<pre>{esc(json.dumps(lscpu, indent=2))}</pre>"
+                     "</details>")
+    return "\n".join(parts)
+
+
+def system_items(system: dict) -> dict:
+    return {key: value for key, value in system.items()
+            if key not in SYSTEM_HIDDEN_KEYS}
+
+
 def system_section(meta: dict | None, stats: dict) -> str:
     parts = []
     if meta:
         for title, key in (
                 ("Experiment", "experiment"),
                 ("Run", "run"),
-                ("System", "system"),
-                ("Environment", "environment")):
+                ("System", "system")):
             value = meta.get(key)
-            if value:
-                parts.append(f"<h3>{esc(title)}</h3>{kv_table(value)}")
+            if not value:
+                continue
+            if key == "experiment":
+                value = experiment_items(value)
+            elif key == "system":
+                value = system_items(value)
+            parts.append(f"<h3>{esc(title)}</h3>{kv_table(value)}")
+
+        env = meta.get("environment")
+        if env:
+            env_main = {k: v for k, v in env.items() if k != "topology"}
+            parts.append("<h3>Environment</h3>")
+            if env_main:
+                parts.append(kv_table(env_main))
+            topology = env.get("topology")
+            if topology:
+                parts.append("<h3>CPU topology</h3>")
+                parts.append(topology_section(topology))
     else:
         parts.append('<p class="muted">meta.json was not supplied; only '
                      "statistics-side environment data is shown.</p>")
@@ -371,7 +480,8 @@ def scenario_section(stats: dict) -> str:
         for scenario, entries in sorted(by_scenario.items()):
             headers = sorted({e.get("header") for e in entries})
             payloads = sorted({e.get("payload") for e in entries})
-            rows.append([scenario, len(entries), headers, payloads])
+            rows.append([scenario_label(scenario), len(entries), headers,
+                         payloads])
         parts.append(data_table(
             ["Scenario", "Benchmarks", "Header sizes", "Payload sizes"], rows))
     if methods:
@@ -484,8 +594,8 @@ def build_report(stats: dict, meta: dict | None, plots: list[Plot],
     skipped_note = ""
     if skipped:
         skipped_note = (
-            '<p class="muted">Skipped non-plot HTML files: '
-            + esc(", ".join(p.name for p in skipped)) + "</p>")
+                '<p class="muted">Skipped non-plot HTML files: '
+                + esc(", ".join(p.name for p in skipped)) + "</p>")
     plots_section = "\n".join(plot_sections) or (
         '<p class="muted">No matching Plotly HTML files were found in the '
         "plots directory.</p>")
@@ -495,7 +605,6 @@ def build_report(stats: dict, meta: dict | None, plots: list[Plot],
         "meta.json": str(meta_path) if meta_path else "not supplied",
         "plots directory": str(plots_dir or output.parent),
         "generated_at": generated,
-        "embedded plots": not link,
     }
     document = f"""<!doctype html>
 <html lang="en">
@@ -579,7 +688,7 @@ def main(argv=None) -> int:
     name = stats.get("experiment") or stats_path.parent.name
     safe_name = re.sub(r"[^A-Za-z0-9._-]+", "_", str(name)).strip("_")
     output = Path(args.output) if args.output else (
-        plots_dir / f"{safe_name or 'report'}_report.html")
+            plots_dir / f"{safe_name or 'report'}_report.html")
     meta = None
     meta_path = Path(args.meta) if args.meta else None
     if meta_path:

@@ -102,6 +102,27 @@ template <std::size_t MinLength> struct AVX2PrefetchAbove {
     }
   }
 };
+
+// Composed hybrid scenario selecting the verified optimal copy method per
+// payload regime: std::memcpy (<128 B, 513 B..32 KiB, 64 KiB..2 MiB, >4 MiB),
+// branchless unrolled AVX2 (128..512 B), and 32B-aligned 8x AVX2 temporal with
+// T0 prefetch (32..64 KiB and 2..4 MiB).
+using VioletCopy = ShortFallback<
+    SimpleScenario<memory_bench::copy_memcpy>, 128,
+    ShortFallback<
+        SimpleScenario<memory_bench::copy_avx2_unrolled_small>, 513,
+        ShortFallback<
+            SimpleScenario<memory_bench::copy_memcpy>, 32768,
+            ShortFallback<
+                SimpleScenario<memory_bench::copy_avx2_aligned_temporal_t0>,
+                65537,
+                ShortFallback<
+                    SimpleScenario<memory_bench::copy_memcpy>, 2097152,
+                    ShortFallback<
+                        SimpleScenario<
+                            memory_bench::copy_avx2_aligned_temporal_t0>,
+                        4194305,
+                        SimpleScenario<memory_bench::copy_memcpy>>>>>>>;
 #endif
 
 } // namespace memcopy_bench::scenarios
