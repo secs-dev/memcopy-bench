@@ -1,0 +1,1763 @@
+{
+  "evaluator_files": {
+    "/usr/bin/python3": "d78f9cf7178ecff09963551399855543c297f37ac207e626228bfe43cb26a70c",
+    "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py": "2f6062e1a37331b910eb85ef1b24abee36945065b96dbf31c34a903634d9f427"
+  },
+  "schema_version": 1,
+  "name": "Beat std::memcpy in BM_PacketScenario",
+  "spec": {
+    "name": "Beat std::memcpy in BM_PacketScenario",
+    "source": "./source",
+    "description": "Find copy methods and scenario compositions that stably beat std::memcpy across header/payload sizes.",
+    "evaluator": [
+      "/usr/bin/python3",
+      "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py"
+    ],
+    "policy": "pareto",
+    "objectives": [
+      {
+        "metric": "geomean_ratio",
+        "type": "number",
+        "direction": "minimize",
+        "minimum_gain": 0.01
+      },
+      {
+        "metric": "win_count",
+        "type": "number",
+        "direction": "maximize",
+        "minimum_gain": 1
+      }
+    ],
+    "constraints": [
+      {
+        "check": "tests",
+        "required": "pass"
+      }
+    ],
+    "budget": {
+      "max_candidates": 12,
+      "max_elapsed_seconds": 3600
+    }
+  },
+  "created_at": 1795682400.5644298,
+  "status": "ready",
+  "incumbent": "candidate-002",
+  "pending": null,
+  "attempts": [
+    {
+      "id": "baseline",
+      "parent": null,
+      "artifact": "/home/modernovo/labs/memcp-bench/.loop_exp/run2/baseline/artifact",
+      "workspace": "/home/modernovo/labs/memcp-bench/.loop_exp/run2/baseline/artifact",
+      "digest": "ffa0b13d203aec1a3cf013cd93a5370bf015c10e9b79357a528af074a5dd9a9c",
+      "context": {},
+      "hypothesis": "Baseline",
+      "summary": "Initial reference",
+      "evaluation": {
+        "status": "complete",
+        "metrics": {
+          "geomean_ratio": 1.0,
+          "win_count": 1
+        },
+        "checks": {
+          "tests": "pass"
+        },
+        "diagnostics": {
+          "best_ratio": 0.9389,
+          "worst_ratio": 1.0419,
+          "cases": {
+            "h16/p64": {
+              "memcpy_ns": 8.46,
+              "cand_ns": 8.46,
+              "ratio": 0.9995
+            },
+            "h16/p256": {
+              "memcpy_ns": 13.3,
+              "cand_ns": 13.28,
+              "ratio": 0.9991
+            },
+            "h16/p1024": {
+              "memcpy_ns": 21.36,
+              "cand_ns": 21.92,
+              "ratio": 1.026
+            },
+            "h16/p4096": {
+              "memcpy_ns": 60.53,
+              "cand_ns": 61.18,
+              "ratio": 1.0109
+            },
+            "h16/p32768": {
+              "memcpy_ns": 1239.45,
+              "cand_ns": 1238.02,
+              "ratio": 0.9988
+            },
+            "h16/p65536": {
+              "memcpy_ns": 3211.58,
+              "cand_ns": 3306.19,
+              "ratio": 1.0295
+            },
+            "h16/p262144": {
+              "memcpy_ns": 12106.82,
+              "cand_ns": 12135.97,
+              "ratio": 1.0024
+            },
+            "h16/p4194304": {
+              "memcpy_ns": 600717.45,
+              "cand_ns": 564026.89,
+              "ratio": 0.9389
+            },
+            "h16/p16777216": {
+              "memcpy_ns": 1955054.25,
+              "cand_ns": 1911554.89,
+              "ratio": 0.9778
+            },
+            "h8/p64": {
+              "memcpy_ns": 2.16,
+              "cand_ns": 2.17,
+              "ratio": 1.0028
+            },
+            "h8/p256": {
+              "memcpy_ns": 6.91,
+              "cand_ns": 7.06,
+              "ratio": 1.0219
+            },
+            "h8/p1024": {
+              "memcpy_ns": 14.95,
+              "cand_ns": 14.51,
+              "ratio": 0.9705
+            },
+            "h8/p4096": {
+              "memcpy_ns": 56.15,
+              "cand_ns": 58.51,
+              "ratio": 1.0419
+            },
+            "h8/p32768": {
+              "memcpy_ns": 1240.53,
+              "cand_ns": 1235.22,
+              "ratio": 0.9957
+            },
+            "h8/p65536": {
+              "memcpy_ns": 3206.39,
+              "cand_ns": 3269.73,
+              "ratio": 1.0198
+            },
+            "h8/p262144": {
+              "memcpy_ns": 12169.63,
+              "cand_ns": 12143.68,
+              "ratio": 0.9979
+            },
+            "h8/p4194304": {
+              "memcpy_ns": 608553.2,
+              "cand_ns": 599987.59,
+              "ratio": 0.9859
+            },
+            "h8/p16777216": {
+              "memcpy_ns": 2000029.82,
+              "cand_ns": 1971162.56,
+              "ratio": 0.9856
+            }
+          }
+        },
+        "provenance": {
+          "artifact_digest": "ffa0b13d203aec1a3cf013cd93a5370bf015c10e9b79357a528af074a5dd9a9c",
+          "evaluator": [
+            "/usr/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py"
+          ],
+          "measured_at": 1795682457.1687288
+        }
+      },
+      "decision": {
+        "action": "select",
+        "relation": "better",
+        "feasibility": "pass",
+        "reason": "First feasible reference"
+      }
+    },
+    {
+      "id": "candidate-001",
+      "parent": "baseline",
+      "workspace": "/home/modernovo/labs/memcp-bench/.loop_exp/run2/candidates/candidate-001/workspace",
+      "artifact": "/home/modernovo/labs/memcp-bench/.loop_exp/run2/candidates/candidate-001/artifact",
+      "context": {
+        "parent_id": "baseline",
+        "parent_digest": "ffa0b13d203aec1a3cf013cd93a5370bf015c10e9b79357a528af074a5dd9a9c",
+        "parent_evaluation": {
+          "status": "complete",
+          "metrics": {
+            "geomean_ratio": 1.0,
+            "win_count": 1
+          },
+          "checks": {
+            "tests": "pass"
+          },
+          "diagnostics": {
+            "best_ratio": 0.9389,
+            "worst_ratio": 1.0419,
+            "cases": {
+              "h16/p64": {
+                "memcpy_ns": 8.46,
+                "cand_ns": 8.46,
+                "ratio": 0.9995
+              },
+              "h16/p256": {
+                "memcpy_ns": 13.3,
+                "cand_ns": 13.28,
+                "ratio": 0.9991
+              },
+              "h16/p1024": {
+                "memcpy_ns": 21.36,
+                "cand_ns": 21.92,
+                "ratio": 1.026
+              },
+              "h16/p4096": {
+                "memcpy_ns": 60.53,
+                "cand_ns": 61.18,
+                "ratio": 1.0109
+              },
+              "h16/p32768": {
+                "memcpy_ns": 1239.45,
+                "cand_ns": 1238.02,
+                "ratio": 0.9988
+              },
+              "h16/p65536": {
+                "memcpy_ns": 3211.58,
+                "cand_ns": 3306.19,
+                "ratio": 1.0295
+              },
+              "h16/p262144": {
+                "memcpy_ns": 12106.82,
+                "cand_ns": 12135.97,
+                "ratio": 1.0024
+              },
+              "h16/p4194304": {
+                "memcpy_ns": 600717.45,
+                "cand_ns": 564026.89,
+                "ratio": 0.9389
+              },
+              "h16/p16777216": {
+                "memcpy_ns": 1955054.25,
+                "cand_ns": 1911554.89,
+                "ratio": 0.9778
+              },
+              "h8/p64": {
+                "memcpy_ns": 2.16,
+                "cand_ns": 2.17,
+                "ratio": 1.0028
+              },
+              "h8/p256": {
+                "memcpy_ns": 6.91,
+                "cand_ns": 7.06,
+                "ratio": 1.0219
+              },
+              "h8/p1024": {
+                "memcpy_ns": 14.95,
+                "cand_ns": 14.51,
+                "ratio": 0.9705
+              },
+              "h8/p4096": {
+                "memcpy_ns": 56.15,
+                "cand_ns": 58.51,
+                "ratio": 1.0419
+              },
+              "h8/p32768": {
+                "memcpy_ns": 1240.53,
+                "cand_ns": 1235.22,
+                "ratio": 0.9957
+              },
+              "h8/p65536": {
+                "memcpy_ns": 3206.39,
+                "cand_ns": 3269.73,
+                "ratio": 1.0198
+              },
+              "h8/p262144": {
+                "memcpy_ns": 12169.63,
+                "cand_ns": 12143.68,
+                "ratio": 0.9979
+              },
+              "h8/p4194304": {
+                "memcpy_ns": 608553.2,
+                "cand_ns": 599987.59,
+                "ratio": 0.9859
+              },
+              "h8/p16777216": {
+                "memcpy_ns": 2000029.82,
+                "cand_ns": 1971162.56,
+                "ratio": 0.9856
+              }
+            }
+          },
+          "provenance": {
+            "artifact_digest": "ffa0b13d203aec1a3cf013cd93a5370bf015c10e9b79357a528af074a5dd9a9c",
+            "evaluator": [
+              "/usr/bin/python3",
+              "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py"
+            ],
+            "measured_at": 1795682457.1687288
+          }
+        },
+        "task": {
+          "name": "Beat std::memcpy in BM_PacketScenario",
+          "source": "./source",
+          "description": "Find copy methods and scenario compositions that stably beat std::memcpy across header/payload sizes.",
+          "evaluator": [
+            "/usr/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py"
+          ],
+          "policy": "pareto",
+          "objectives": [
+            {
+              "metric": "geomean_ratio",
+              "type": "number",
+              "direction": "minimize",
+              "minimum_gain": 0.01
+            },
+            {
+              "metric": "win_count",
+              "type": "number",
+              "direction": "maximize",
+              "minimum_gain": 1
+            }
+          ],
+          "constraints": [
+            {
+              "check": "tests",
+              "required": "pass"
+            }
+          ],
+          "budget": {
+            "max_candidates": 12,
+            "max_elapsed_seconds": 3600
+          }
+        },
+        "introduction": {},
+        "history": [
+          {
+            "id": "baseline",
+            "hypothesis": "Baseline",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "First feasible reference"
+            }
+          }
+        ],
+        "remaining_candidates": 12
+      },
+      "hypothesis": "Regime dispatch: memcpy for <16K & 128K..512K, 32B-aligned AVX2 temporal for L1/L2 & L3 (16K..128K, 512K..8M), and AVX2 streaming + NTA prefetch for >=8M",
+      "summary": "Implemented cache-regime dispatch combining std::memcpy, aligned AVX2 temporal, and aligned AVX2 streaming",
+      "digest": "1a22f400ae6432d18b00fdc83cd46c19877b182e6842da586517ae2fbdfdcbfe",
+      "evaluation": {
+        "status": "complete",
+        "metrics": {
+          "geomean_ratio": 0.9129,
+          "win_count": 7
+        },
+        "checks": {
+          "tests": "pass"
+        },
+        "diagnostics": {
+          "best_ratio": 0.5504,
+          "worst_ratio": 1.0425,
+          "cases": {
+            "h16/p64": {
+              "memcpy_ns": 8.48,
+              "cand_ns": 8.49,
+              "ratio": 1.0019
+            },
+            "h16/p256": {
+              "memcpy_ns": 13.33,
+              "cand_ns": 13.34,
+              "ratio": 1.0006
+            },
+            "h16/p1024": {
+              "memcpy_ns": 21.53,
+              "cand_ns": 21.99,
+              "ratio": 1.0213
+            },
+            "h16/p4096": {
+              "memcpy_ns": 65.1,
+              "cand_ns": 65.04,
+              "ratio": 0.9991
+            },
+            "h16/p32768": {
+              "memcpy_ns": 1198.05,
+              "cand_ns": 1080.9,
+              "ratio": 0.9022
+            },
+            "h16/p65536": {
+              "memcpy_ns": 2393.7,
+              "cand_ns": 2082.81,
+              "ratio": 0.8701
+            },
+            "h16/p262144": {
+              "memcpy_ns": 12223.99,
+              "cand_ns": 12254.69,
+              "ratio": 1.0025
+            },
+            "h16/p4194304": {
+              "memcpy_ns": 613761.32,
+              "cand_ns": 337792.04,
+              "ratio": 0.5504
+            },
+            "h16/p16777216": {
+              "memcpy_ns": 2038381.56,
+              "cand_ns": 2029301.11,
+              "ratio": 0.9955
+            },
+            "h8/p64": {
+              "memcpy_ns": 2.15,
+              "cand_ns": 2.13,
+              "ratio": 0.9909
+            },
+            "h8/p256": {
+              "memcpy_ns": 6.9,
+              "cand_ns": 6.92,
+              "ratio": 1.0022
+            },
+            "h8/p1024": {
+              "memcpy_ns": 15.91,
+              "cand_ns": 15.93,
+              "ratio": 1.0009
+            },
+            "h8/p4096": {
+              "memcpy_ns": 58.07,
+              "cand_ns": 59.54,
+              "ratio": 1.0253
+            },
+            "h8/p32768": {
+              "memcpy_ns": 1195.44,
+              "cand_ns": 1083.06,
+              "ratio": 0.906
+            },
+            "h8/p65536": {
+              "memcpy_ns": 2395.75,
+              "cand_ns": 2212.72,
+              "ratio": 0.9236
+            },
+            "h8/p262144": {
+              "memcpy_ns": 12234.44,
+              "cand_ns": 12754.61,
+              "ratio": 1.0425
+            },
+            "h8/p4194304": {
+              "memcpy_ns": 612982.14,
+              "cand_ns": 353826.78,
+              "ratio": 0.5772
+            },
+            "h8/p16777216": {
+              "memcpy_ns": 2085207.33,
+              "cand_ns": 1787707.29,
+              "ratio": 0.8573
+            }
+          }
+        },
+        "provenance": {
+          "artifact_digest": "1a22f400ae6432d18b00fdc83cd46c19877b182e6842da586517ae2fbdfdcbfe",
+          "evaluator": [
+            "/usr/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py"
+          ],
+          "measured_at": 1795682536.4842765
+        }
+      },
+      "decision": {
+        "action": "select",
+        "relation": "better",
+        "feasibility": "pass",
+        "reason": "pareto comparison: better"
+      }
+    },
+    {
+      "id": "candidate-002",
+      "parent": "candidate-001",
+      "workspace": "/home/modernovo/labs/memcp-bench/.loop_exp/run2/candidates/candidate-002/workspace",
+      "artifact": "/home/modernovo/labs/memcp-bench/.loop_exp/run2/candidates/candidate-002/artifact",
+      "context": {
+        "parent_id": "candidate-001",
+        "parent_digest": "1a22f400ae6432d18b00fdc83cd46c19877b182e6842da586517ae2fbdfdcbfe",
+        "parent_evaluation": {
+          "status": "complete",
+          "metrics": {
+            "geomean_ratio": 0.9129,
+            "win_count": 7
+          },
+          "checks": {
+            "tests": "pass"
+          },
+          "diagnostics": {
+            "best_ratio": 0.5504,
+            "worst_ratio": 1.0425,
+            "cases": {
+              "h16/p64": {
+                "memcpy_ns": 8.48,
+                "cand_ns": 8.49,
+                "ratio": 1.0019
+              },
+              "h16/p256": {
+                "memcpy_ns": 13.33,
+                "cand_ns": 13.34,
+                "ratio": 1.0006
+              },
+              "h16/p1024": {
+                "memcpy_ns": 21.53,
+                "cand_ns": 21.99,
+                "ratio": 1.0213
+              },
+              "h16/p4096": {
+                "memcpy_ns": 65.1,
+                "cand_ns": 65.04,
+                "ratio": 0.9991
+              },
+              "h16/p32768": {
+                "memcpy_ns": 1198.05,
+                "cand_ns": 1080.9,
+                "ratio": 0.9022
+              },
+              "h16/p65536": {
+                "memcpy_ns": 2393.7,
+                "cand_ns": 2082.81,
+                "ratio": 0.8701
+              },
+              "h16/p262144": {
+                "memcpy_ns": 12223.99,
+                "cand_ns": 12254.69,
+                "ratio": 1.0025
+              },
+              "h16/p4194304": {
+                "memcpy_ns": 613761.32,
+                "cand_ns": 337792.04,
+                "ratio": 0.5504
+              },
+              "h16/p16777216": {
+                "memcpy_ns": 2038381.56,
+                "cand_ns": 2029301.11,
+                "ratio": 0.9955
+              },
+              "h8/p64": {
+                "memcpy_ns": 2.15,
+                "cand_ns": 2.13,
+                "ratio": 0.9909
+              },
+              "h8/p256": {
+                "memcpy_ns": 6.9,
+                "cand_ns": 6.92,
+                "ratio": 1.0022
+              },
+              "h8/p1024": {
+                "memcpy_ns": 15.91,
+                "cand_ns": 15.93,
+                "ratio": 1.0009
+              },
+              "h8/p4096": {
+                "memcpy_ns": 58.07,
+                "cand_ns": 59.54,
+                "ratio": 1.0253
+              },
+              "h8/p32768": {
+                "memcpy_ns": 1195.44,
+                "cand_ns": 1083.06,
+                "ratio": 0.906
+              },
+              "h8/p65536": {
+                "memcpy_ns": 2395.75,
+                "cand_ns": 2212.72,
+                "ratio": 0.9236
+              },
+              "h8/p262144": {
+                "memcpy_ns": 12234.44,
+                "cand_ns": 12754.61,
+                "ratio": 1.0425
+              },
+              "h8/p4194304": {
+                "memcpy_ns": 612982.14,
+                "cand_ns": 353826.78,
+                "ratio": 0.5772
+              },
+              "h8/p16777216": {
+                "memcpy_ns": 2085207.33,
+                "cand_ns": 1787707.29,
+                "ratio": 0.8573
+              }
+            }
+          },
+          "provenance": {
+            "artifact_digest": "1a22f400ae6432d18b00fdc83cd46c19877b182e6842da586517ae2fbdfdcbfe",
+            "evaluator": [
+              "/usr/bin/python3",
+              "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py"
+            ],
+            "measured_at": 1795682536.4842765
+          }
+        },
+        "task": {
+          "name": "Beat std::memcpy in BM_PacketScenario",
+          "source": "./source",
+          "description": "Find copy methods and scenario compositions that stably beat std::memcpy across header/payload sizes.",
+          "evaluator": [
+            "/usr/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py"
+          ],
+          "policy": "pareto",
+          "objectives": [
+            {
+              "metric": "geomean_ratio",
+              "type": "number",
+              "direction": "minimize",
+              "minimum_gain": 0.01
+            },
+            {
+              "metric": "win_count",
+              "type": "number",
+              "direction": "maximize",
+              "minimum_gain": 1
+            }
+          ],
+          "constraints": [
+            {
+              "check": "tests",
+              "required": "pass"
+            }
+          ],
+          "budget": {
+            "max_candidates": 12,
+            "max_elapsed_seconds": 3600
+          }
+        },
+        "introduction": {},
+        "history": [
+          {
+            "id": "baseline",
+            "hypothesis": "Baseline",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "First feasible reference"
+            }
+          },
+          {
+            "id": "candidate-001",
+            "hypothesis": "Regime dispatch: memcpy for <16K & 128K..512K, 32B-aligned AVX2 temporal for L1/L2 & L3 (16K..128K, 512K..8M), and AVX2 streaming + NTA prefetch for >=8M",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "pareto comparison: better"
+            }
+          }
+        ],
+        "remaining_candidates": 11
+      },
+      "hypothesis": "8x unrolled temporal AVX2 (256B/iter) + hardware-prefetched AVX2 streaming without NTA hints improves 32K..64K, 4M, and 16M",
+      "summary": "Unrolled aligned AVX2 temporal to 8x and removed software NTA prefetch from streaming loop",
+      "digest": "ceff28daa343d33eefc77708b8719273e7ebd0b8f300237d8928461b91b3056d",
+      "evaluation": {
+        "status": "complete",
+        "metrics": {
+          "geomean_ratio": 0.896,
+          "win_count": 8
+        },
+        "checks": {
+          "tests": "pass"
+        },
+        "diagnostics": {
+          "best_ratio": 0.4844,
+          "worst_ratio": 1.0597,
+          "cases": {
+            "h16/p64": {
+              "memcpy_ns": 8.48,
+              "cand_ns": 8.48,
+              "ratio": 1.0003
+            },
+            "h16/p256": {
+              "memcpy_ns": 13.3,
+              "cand_ns": 13.31,
+              "ratio": 1.0007
+            },
+            "h16/p1024": {
+              "memcpy_ns": 22.03,
+              "cand_ns": 21.99,
+              "ratio": 0.9982
+            },
+            "h16/p4096": {
+              "memcpy_ns": 63.22,
+              "cand_ns": 64.17,
+              "ratio": 1.0151
+            },
+            "h16/p32768": {
+              "memcpy_ns": 1203.09,
+              "cand_ns": 1084.32,
+              "ratio": 0.9013
+            },
+            "h16/p65536": {
+              "memcpy_ns": 2397.64,
+              "cand_ns": 2182.56,
+              "ratio": 0.9103
+            },
+            "h16/p262144": {
+              "memcpy_ns": 12914.09,
+              "cand_ns": 12148.66,
+              "ratio": 0.9407
+            },
+            "h16/p4194304": {
+              "memcpy_ns": 612723.41,
+              "cand_ns": 296825.38,
+              "ratio": 0.4844
+            },
+            "h16/p16777216": {
+              "memcpy_ns": 1689940.53,
+              "cand_ns": 1790850.49,
+              "ratio": 1.0597
+            },
+            "h8/p64": {
+              "memcpy_ns": 2.12,
+              "cand_ns": 2.12,
+              "ratio": 0.9999
+            },
+            "h8/p256": {
+              "memcpy_ns": 6.93,
+              "cand_ns": 6.92,
+              "ratio": 0.9982
+            },
+            "h8/p1024": {
+              "memcpy_ns": 15.07,
+              "cand_ns": 15.05,
+              "ratio": 0.9984
+            },
+            "h8/p4096": {
+              "memcpy_ns": 56.85,
+              "cand_ns": 57.74,
+              "ratio": 1.0156
+            },
+            "h8/p32768": {
+              "memcpy_ns": 1196.74,
+              "cand_ns": 1076.85,
+              "ratio": 0.8998
+            },
+            "h8/p65536": {
+              "memcpy_ns": 2376.77,
+              "cand_ns": 2181.39,
+              "ratio": 0.9178
+            },
+            "h8/p262144": {
+              "memcpy_ns": 12871.84,
+              "cand_ns": 12883.56,
+              "ratio": 1.0009
+            },
+            "h8/p4194304": {
+              "memcpy_ns": 610299.16,
+              "cand_ns": 329042.8,
+              "ratio": 0.5392
+            },
+            "h8/p16777216": {
+              "memcpy_ns": 2087102.19,
+              "cand_ns": 1595891.48,
+              "ratio": 0.7646
+            }
+          }
+        },
+        "provenance": {
+          "artifact_digest": "ceff28daa343d33eefc77708b8719273e7ebd0b8f300237d8928461b91b3056d",
+          "evaluator": [
+            "/usr/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py"
+          ],
+          "measured_at": 1795682626.0206358
+        }
+      },
+      "decision": {
+        "action": "select",
+        "relation": "better",
+        "feasibility": "pass",
+        "reason": "pareto comparison: better"
+      }
+    },
+    {
+      "id": "candidate-003",
+      "parent": "candidate-002",
+      "workspace": "/home/modernovo/labs/memcp-bench/.loop_exp/run2/candidates/candidate-003/workspace",
+      "artifact": "/home/modernovo/labs/memcp-bench/.loop_exp/run2/candidates/candidate-003/artifact",
+      "context": {
+        "parent_id": "candidate-002",
+        "parent_digest": "ceff28daa343d33eefc77708b8719273e7ebd0b8f300237d8928461b91b3056d",
+        "parent_evaluation": {
+          "status": "complete",
+          "metrics": {
+            "geomean_ratio": 0.896,
+            "win_count": 8
+          },
+          "checks": {
+            "tests": "pass"
+          },
+          "diagnostics": {
+            "best_ratio": 0.4844,
+            "worst_ratio": 1.0597,
+            "cases": {
+              "h16/p64": {
+                "memcpy_ns": 8.48,
+                "cand_ns": 8.48,
+                "ratio": 1.0003
+              },
+              "h16/p256": {
+                "memcpy_ns": 13.3,
+                "cand_ns": 13.31,
+                "ratio": 1.0007
+              },
+              "h16/p1024": {
+                "memcpy_ns": 22.03,
+                "cand_ns": 21.99,
+                "ratio": 0.9982
+              },
+              "h16/p4096": {
+                "memcpy_ns": 63.22,
+                "cand_ns": 64.17,
+                "ratio": 1.0151
+              },
+              "h16/p32768": {
+                "memcpy_ns": 1203.09,
+                "cand_ns": 1084.32,
+                "ratio": 0.9013
+              },
+              "h16/p65536": {
+                "memcpy_ns": 2397.64,
+                "cand_ns": 2182.56,
+                "ratio": 0.9103
+              },
+              "h16/p262144": {
+                "memcpy_ns": 12914.09,
+                "cand_ns": 12148.66,
+                "ratio": 0.9407
+              },
+              "h16/p4194304": {
+                "memcpy_ns": 612723.41,
+                "cand_ns": 296825.38,
+                "ratio": 0.4844
+              },
+              "h16/p16777216": {
+                "memcpy_ns": 1689940.53,
+                "cand_ns": 1790850.49,
+                "ratio": 1.0597
+              },
+              "h8/p64": {
+                "memcpy_ns": 2.12,
+                "cand_ns": 2.12,
+                "ratio": 0.9999
+              },
+              "h8/p256": {
+                "memcpy_ns": 6.93,
+                "cand_ns": 6.92,
+                "ratio": 0.9982
+              },
+              "h8/p1024": {
+                "memcpy_ns": 15.07,
+                "cand_ns": 15.05,
+                "ratio": 0.9984
+              },
+              "h8/p4096": {
+                "memcpy_ns": 56.85,
+                "cand_ns": 57.74,
+                "ratio": 1.0156
+              },
+              "h8/p32768": {
+                "memcpy_ns": 1196.74,
+                "cand_ns": 1076.85,
+                "ratio": 0.8998
+              },
+              "h8/p65536": {
+                "memcpy_ns": 2376.77,
+                "cand_ns": 2181.39,
+                "ratio": 0.9178
+              },
+              "h8/p262144": {
+                "memcpy_ns": 12871.84,
+                "cand_ns": 12883.56,
+                "ratio": 1.0009
+              },
+              "h8/p4194304": {
+                "memcpy_ns": 610299.16,
+                "cand_ns": 329042.8,
+                "ratio": 0.5392
+              },
+              "h8/p16777216": {
+                "memcpy_ns": 2087102.19,
+                "cand_ns": 1595891.48,
+                "ratio": 0.7646
+              }
+            }
+          },
+          "provenance": {
+            "artifact_digest": "ceff28daa343d33eefc77708b8719273e7ebd0b8f300237d8928461b91b3056d",
+            "evaluator": [
+              "/usr/bin/python3",
+              "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py"
+            ],
+            "measured_at": 1795682626.0206358
+          }
+        },
+        "task": {
+          "name": "Beat std::memcpy in BM_PacketScenario",
+          "source": "./source",
+          "description": "Find copy methods and scenario compositions that stably beat std::memcpy across header/payload sizes.",
+          "evaluator": [
+            "/usr/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py"
+          ],
+          "policy": "pareto",
+          "objectives": [
+            {
+              "metric": "geomean_ratio",
+              "type": "number",
+              "direction": "minimize",
+              "minimum_gain": 0.01
+            },
+            {
+              "metric": "win_count",
+              "type": "number",
+              "direction": "maximize",
+              "minimum_gain": 1
+            }
+          ],
+          "constraints": [
+            {
+              "check": "tests",
+              "required": "pass"
+            }
+          ],
+          "budget": {
+            "max_candidates": 12,
+            "max_elapsed_seconds": 3600
+          }
+        },
+        "introduction": {},
+        "history": [
+          {
+            "id": "baseline",
+            "hypothesis": "Baseline",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "First feasible reference"
+            }
+          },
+          {
+            "id": "candidate-001",
+            "hypothesis": "Regime dispatch: memcpy for <16K & 128K..512K, 32B-aligned AVX2 temporal for L1/L2 & L3 (16K..128K, 512K..8M), and AVX2 streaming + NTA prefetch for >=8M",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "pareto comparison: better"
+            }
+          },
+          {
+            "id": "candidate-002",
+            "hypothesis": "8x unrolled temporal AVX2 (256B/iter) + hardware-prefetched AVX2 streaming without NTA hints improves 32K..64K, 4M, and 16M",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "pareto comparison: better"
+            }
+          }
+        ],
+        "remaining_candidates": 10
+      },
+      "hypothesis": "Extend 8x aligned AVX2 temporal down to 4096B, add T0 prefetch at 128K..512K (L2->L3 boundary), and unroll streaming to 8x for >=8M",
+      "summary": "Lowered AVX2 temporal threshold to 4096B, added T0-prefetched 8x AVX2 for 128K..512K, unrolled streaming to 8x",
+      "digest": "4e21a58a57229003713173bf987d9c8a92969cacc60a76383e1ef49840bef05c",
+      "evaluation": {
+        "status": "complete",
+        "metrics": {
+          "geomean_ratio": 0.9626,
+          "win_count": 8
+        },
+        "checks": {
+          "tests": "pass"
+        },
+        "diagnostics": {
+          "best_ratio": 0.5223,
+          "worst_ratio": 1.7406,
+          "cases": {
+            "h16/p64": {
+              "memcpy_ns": 8.45,
+              "cand_ns": 8.47,
+              "ratio": 1.0024
+            },
+            "h16/p256": {
+              "memcpy_ns": 13.35,
+              "cand_ns": 13.29,
+              "ratio": 0.9953
+            },
+            "h16/p1024": {
+              "memcpy_ns": 22.19,
+              "cand_ns": 22.11,
+              "ratio": 0.9967
+            },
+            "h16/p4096": {
+              "memcpy_ns": 63.38,
+              "cand_ns": 110.32,
+              "ratio": 1.7406
+            },
+            "h16/p32768": {
+              "memcpy_ns": 1164.18,
+              "cand_ns": 1093.13,
+              "ratio": 0.939
+            },
+            "h16/p65536": {
+              "memcpy_ns": 2383.71,
+              "cand_ns": 2216.19,
+              "ratio": 0.9297
+            },
+            "h16/p262144": {
+              "memcpy_ns": 12223.41,
+              "cand_ns": 14878.89,
+              "ratio": 1.2172
+            },
+            "h16/p4194304": {
+              "memcpy_ns": 559910.31,
+              "cand_ns": 310782.64,
+              "ratio": 0.5551
+            },
+            "h16/p16777216": {
+              "memcpy_ns": 2050041.85,
+              "cand_ns": 1856420.0,
+              "ratio": 0.9056
+            },
+            "h8/p64": {
+              "memcpy_ns": 2.14,
+              "cand_ns": 2.17,
+              "ratio": 1.0138
+            },
+            "h8/p256": {
+              "memcpy_ns": 6.91,
+              "cand_ns": 6.88,
+              "ratio": 0.9962
+            },
+            "h8/p1024": {
+              "memcpy_ns": 14.52,
+              "cand_ns": 14.51,
+              "ratio": 0.9991
+            },
+            "h8/p4096": {
+              "memcpy_ns": 58.22,
+              "cand_ns": 62.24,
+              "ratio": 1.0692
+            },
+            "h8/p32768": {
+              "memcpy_ns": 1164.4,
+              "cand_ns": 1088.83,
+              "ratio": 0.9351
+            },
+            "h8/p65536": {
+              "memcpy_ns": 2378.33,
+              "cand_ns": 2179.44,
+              "ratio": 0.9164
+            },
+            "h8/p262144": {
+              "memcpy_ns": 12153.18,
+              "cand_ns": 14867.69,
+              "ratio": 1.2234
+            },
+            "h8/p4194304": {
+              "memcpy_ns": 606510.76,
+              "cand_ns": 316779.77,
+              "ratio": 0.5223
+            },
+            "h8/p16777216": {
+              "memcpy_ns": 2022477.61,
+              "cand_ns": 1865258.15,
+              "ratio": 0.9223
+            }
+          }
+        },
+        "provenance": {
+          "artifact_digest": "4e21a58a57229003713173bf987d9c8a92969cacc60a76383e1ef49840bef05c",
+          "evaluator": [
+            "/usr/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py"
+          ],
+          "measured_at": 1795682716.8987713
+        }
+      },
+      "decision": {
+        "action": "reject",
+        "relation": "worse",
+        "feasibility": "pass",
+        "reason": "pareto comparison: worse"
+      }
+    },
+    {
+      "id": "candidate-004",
+      "parent": "candidate-002",
+      "workspace": "/home/modernovo/labs/memcp-bench/.loop_exp/run2/candidates/candidate-004/workspace",
+      "artifact": "/home/modernovo/labs/memcp-bench/.loop_exp/run2/candidates/candidate-004/artifact",
+      "context": {
+        "parent_id": "candidate-002",
+        "parent_digest": "ceff28daa343d33eefc77708b8719273e7ebd0b8f300237d8928461b91b3056d",
+        "parent_evaluation": {
+          "status": "complete",
+          "metrics": {
+            "geomean_ratio": 0.896,
+            "win_count": 8
+          },
+          "checks": {
+            "tests": "pass"
+          },
+          "diagnostics": {
+            "best_ratio": 0.4844,
+            "worst_ratio": 1.0597,
+            "cases": {
+              "h16/p64": {
+                "memcpy_ns": 8.48,
+                "cand_ns": 8.48,
+                "ratio": 1.0003
+              },
+              "h16/p256": {
+                "memcpy_ns": 13.3,
+                "cand_ns": 13.31,
+                "ratio": 1.0007
+              },
+              "h16/p1024": {
+                "memcpy_ns": 22.03,
+                "cand_ns": 21.99,
+                "ratio": 0.9982
+              },
+              "h16/p4096": {
+                "memcpy_ns": 63.22,
+                "cand_ns": 64.17,
+                "ratio": 1.0151
+              },
+              "h16/p32768": {
+                "memcpy_ns": 1203.09,
+                "cand_ns": 1084.32,
+                "ratio": 0.9013
+              },
+              "h16/p65536": {
+                "memcpy_ns": 2397.64,
+                "cand_ns": 2182.56,
+                "ratio": 0.9103
+              },
+              "h16/p262144": {
+                "memcpy_ns": 12914.09,
+                "cand_ns": 12148.66,
+                "ratio": 0.9407
+              },
+              "h16/p4194304": {
+                "memcpy_ns": 612723.41,
+                "cand_ns": 296825.38,
+                "ratio": 0.4844
+              },
+              "h16/p16777216": {
+                "memcpy_ns": 1689940.53,
+                "cand_ns": 1790850.49,
+                "ratio": 1.0597
+              },
+              "h8/p64": {
+                "memcpy_ns": 2.12,
+                "cand_ns": 2.12,
+                "ratio": 0.9999
+              },
+              "h8/p256": {
+                "memcpy_ns": 6.93,
+                "cand_ns": 6.92,
+                "ratio": 0.9982
+              },
+              "h8/p1024": {
+                "memcpy_ns": 15.07,
+                "cand_ns": 15.05,
+                "ratio": 0.9984
+              },
+              "h8/p4096": {
+                "memcpy_ns": 56.85,
+                "cand_ns": 57.74,
+                "ratio": 1.0156
+              },
+              "h8/p32768": {
+                "memcpy_ns": 1196.74,
+                "cand_ns": 1076.85,
+                "ratio": 0.8998
+              },
+              "h8/p65536": {
+                "memcpy_ns": 2376.77,
+                "cand_ns": 2181.39,
+                "ratio": 0.9178
+              },
+              "h8/p262144": {
+                "memcpy_ns": 12871.84,
+                "cand_ns": 12883.56,
+                "ratio": 1.0009
+              },
+              "h8/p4194304": {
+                "memcpy_ns": 610299.16,
+                "cand_ns": 329042.8,
+                "ratio": 0.5392
+              },
+              "h8/p16777216": {
+                "memcpy_ns": 2087102.19,
+                "cand_ns": 1595891.48,
+                "ratio": 0.7646
+              }
+            }
+          },
+          "provenance": {
+            "artifact_digest": "ceff28daa343d33eefc77708b8719273e7ebd0b8f300237d8928461b91b3056d",
+            "evaluator": [
+              "/usr/bin/python3",
+              "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py"
+            ],
+            "measured_at": 1795682626.0206358
+          }
+        },
+        "task": {
+          "name": "Beat std::memcpy in BM_PacketScenario",
+          "source": "./source",
+          "description": "Find copy methods and scenario compositions that stably beat std::memcpy across header/payload sizes.",
+          "evaluator": [
+            "/usr/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py"
+          ],
+          "policy": "pareto",
+          "objectives": [
+            {
+              "metric": "geomean_ratio",
+              "type": "number",
+              "direction": "minimize",
+              "minimum_gain": 0.01
+            },
+            {
+              "metric": "win_count",
+              "type": "number",
+              "direction": "maximize",
+              "minimum_gain": 1
+            }
+          ],
+          "constraints": [
+            {
+              "check": "tests",
+              "required": "pass"
+            }
+          ],
+          "budget": {
+            "max_candidates": 12,
+            "max_elapsed_seconds": 3600
+          }
+        },
+        "introduction": {},
+        "history": [
+          {
+            "id": "baseline",
+            "hypothesis": "Baseline",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "First feasible reference"
+            }
+          },
+          {
+            "id": "candidate-001",
+            "hypothesis": "Regime dispatch: memcpy for <16K & 128K..512K, 32B-aligned AVX2 temporal for L1/L2 & L3 (16K..128K, 512K..8M), and AVX2 streaming + NTA prefetch for >=8M",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "pareto comparison: better"
+            }
+          },
+          {
+            "id": "candidate-002",
+            "hypothesis": "8x unrolled temporal AVX2 (256B/iter) + hardware-prefetched AVX2 streaming without NTA hints improves 32K..64K, 4M, and 16M",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "pareto comparison: better"
+            }
+          },
+          {
+            "id": "candidate-003",
+            "hypothesis": "Extend 8x aligned AVX2 temporal down to 4096B, add T0 prefetch at 128K..512K (L2->L3 boundary), and unroll streaming to 8x for >=8M",
+            "decision": {
+              "action": "reject",
+              "relation": "worse",
+              "feasibility": "pass",
+              "reason": "pareto comparison: worse"
+            }
+          }
+        ],
+        "remaining_candidates": 9
+      },
+      "hypothesis": "Keep <16K and 128K..512K on std::memcpy, 8x aligned AVX2 temporal for 16K..128K and 512K..8M, and 8x HW-prefetched AVX2 streaming for >=8M",
+      "summary": "Combined candidate-002 regime thresholds with candidate-003 8x unrolled streaming loop",
+      "digest": "a88951bb5c737f589fe0a8ec085a562a3495cfa0729108d911a34e94b9302ed4",
+      "evaluation": {
+        "status": "complete",
+        "metrics": {
+          "geomean_ratio": 0.9254,
+          "win_count": 7
+        },
+        "checks": {
+          "tests": "pass"
+        },
+        "diagnostics": {
+          "best_ratio": 0.5236,
+          "worst_ratio": 1.1051,
+          "cases": {
+            "h16/p64": {
+              "memcpy_ns": 8.55,
+              "cand_ns": 8.53,
+              "ratio": 0.9974
+            },
+            "h16/p256": {
+              "memcpy_ns": 13.43,
+              "cand_ns": 13.55,
+              "ratio": 1.0093
+            },
+            "h16/p1024": {
+              "memcpy_ns": 22.17,
+              "cand_ns": 22.19,
+              "ratio": 1.0011
+            },
+            "h16/p4096": {
+              "memcpy_ns": 61.23,
+              "cand_ns": 63.6,
+              "ratio": 1.0387
+            },
+            "h16/p32768": {
+              "memcpy_ns": 1178.88,
+              "cand_ns": 1065.85,
+              "ratio": 0.9041
+            },
+            "h16/p65536": {
+              "memcpy_ns": 2427.41,
+              "cand_ns": 2334.05,
+              "ratio": 0.9615
+            },
+            "h16/p262144": {
+              "memcpy_ns": 12217.74,
+              "cand_ns": 12173.0,
+              "ratio": 0.9963
+            },
+            "h16/p4194304": {
+              "memcpy_ns": 608378.68,
+              "cand_ns": 318517.25,
+              "ratio": 0.5236
+            },
+            "h16/p16777216": {
+              "memcpy_ns": 1700608.58,
+              "cand_ns": 1879324.9,
+              "ratio": 1.1051
+            },
+            "h8/p64": {
+              "memcpy_ns": 2.16,
+              "cand_ns": 2.17,
+              "ratio": 1.0014
+            },
+            "h8/p256": {
+              "memcpy_ns": 6.99,
+              "cand_ns": 6.99,
+              "ratio": 1.0
+            },
+            "h8/p1024": {
+              "memcpy_ns": 14.82,
+              "cand_ns": 14.78,
+              "ratio": 0.9969
+            },
+            "h8/p4096": {
+              "memcpy_ns": 57.97,
+              "cand_ns": 58.82,
+              "ratio": 1.0147
+            },
+            "h8/p32768": {
+              "memcpy_ns": 1200.07,
+              "cand_ns": 1059.65,
+              "ratio": 0.883
+            },
+            "h8/p65536": {
+              "memcpy_ns": 2423.84,
+              "cand_ns": 2291.11,
+              "ratio": 0.9452
+            },
+            "h8/p262144": {
+              "memcpy_ns": 12224.33,
+              "cand_ns": 12204.1,
+              "ratio": 0.9983
+            },
+            "h8/p4194304": {
+              "memcpy_ns": 605420.0,
+              "cand_ns": 367318.97,
+              "ratio": 0.6067
+            },
+            "h8/p16777216": {
+              "memcpy_ns": 2058547.32,
+              "cand_ns": 1898272.21,
+              "ratio": 0.9221
+            }
+          }
+        },
+        "provenance": {
+          "artifact_digest": "a88951bb5c737f589fe0a8ec085a562a3495cfa0729108d911a34e94b9302ed4",
+          "evaluator": [
+            "/usr/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py"
+          ],
+          "measured_at": 1795682811.2979255
+        }
+      },
+      "decision": {
+        "action": "reject",
+        "relation": "worse",
+        "feasibility": "pass",
+        "reason": "pareto comparison: worse"
+      }
+    },
+    {
+      "id": "candidate-005",
+      "parent": "candidate-002",
+      "workspace": "/home/modernovo/labs/memcp-bench/.loop_exp/run2/candidates/candidate-005/workspace",
+      "artifact": "/home/modernovo/labs/memcp-bench/.loop_exp/run2/candidates/candidate-005/artifact",
+      "context": {
+        "parent_id": "candidate-002",
+        "parent_digest": "ceff28daa343d33eefc77708b8719273e7ebd0b8f300237d8928461b91b3056d",
+        "parent_evaluation": {
+          "status": "complete",
+          "metrics": {
+            "geomean_ratio": 0.896,
+            "win_count": 8
+          },
+          "checks": {
+            "tests": "pass"
+          },
+          "diagnostics": {
+            "best_ratio": 0.4844,
+            "worst_ratio": 1.0597,
+            "cases": {
+              "h16/p64": {
+                "memcpy_ns": 8.48,
+                "cand_ns": 8.48,
+                "ratio": 1.0003
+              },
+              "h16/p256": {
+                "memcpy_ns": 13.3,
+                "cand_ns": 13.31,
+                "ratio": 1.0007
+              },
+              "h16/p1024": {
+                "memcpy_ns": 22.03,
+                "cand_ns": 21.99,
+                "ratio": 0.9982
+              },
+              "h16/p4096": {
+                "memcpy_ns": 63.22,
+                "cand_ns": 64.17,
+                "ratio": 1.0151
+              },
+              "h16/p32768": {
+                "memcpy_ns": 1203.09,
+                "cand_ns": 1084.32,
+                "ratio": 0.9013
+              },
+              "h16/p65536": {
+                "memcpy_ns": 2397.64,
+                "cand_ns": 2182.56,
+                "ratio": 0.9103
+              },
+              "h16/p262144": {
+                "memcpy_ns": 12914.09,
+                "cand_ns": 12148.66,
+                "ratio": 0.9407
+              },
+              "h16/p4194304": {
+                "memcpy_ns": 612723.41,
+                "cand_ns": 296825.38,
+                "ratio": 0.4844
+              },
+              "h16/p16777216": {
+                "memcpy_ns": 1689940.53,
+                "cand_ns": 1790850.49,
+                "ratio": 1.0597
+              },
+              "h8/p64": {
+                "memcpy_ns": 2.12,
+                "cand_ns": 2.12,
+                "ratio": 0.9999
+              },
+              "h8/p256": {
+                "memcpy_ns": 6.93,
+                "cand_ns": 6.92,
+                "ratio": 0.9982
+              },
+              "h8/p1024": {
+                "memcpy_ns": 15.07,
+                "cand_ns": 15.05,
+                "ratio": 0.9984
+              },
+              "h8/p4096": {
+                "memcpy_ns": 56.85,
+                "cand_ns": 57.74,
+                "ratio": 1.0156
+              },
+              "h8/p32768": {
+                "memcpy_ns": 1196.74,
+                "cand_ns": 1076.85,
+                "ratio": 0.8998
+              },
+              "h8/p65536": {
+                "memcpy_ns": 2376.77,
+                "cand_ns": 2181.39,
+                "ratio": 0.9178
+              },
+              "h8/p262144": {
+                "memcpy_ns": 12871.84,
+                "cand_ns": 12883.56,
+                "ratio": 1.0009
+              },
+              "h8/p4194304": {
+                "memcpy_ns": 610299.16,
+                "cand_ns": 329042.8,
+                "ratio": 0.5392
+              },
+              "h8/p16777216": {
+                "memcpy_ns": 2087102.19,
+                "cand_ns": 1595891.48,
+                "ratio": 0.7646
+              }
+            }
+          },
+          "provenance": {
+            "artifact_digest": "ceff28daa343d33eefc77708b8719273e7ebd0b8f300237d8928461b91b3056d",
+            "evaluator": [
+              "/usr/bin/python3",
+              "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py"
+            ],
+            "measured_at": 1795682626.0206358
+          }
+        },
+        "task": {
+          "name": "Beat std::memcpy in BM_PacketScenario",
+          "source": "./source",
+          "description": "Find copy methods and scenario compositions that stably beat std::memcpy across header/payload sizes.",
+          "evaluator": [
+            "/usr/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py"
+          ],
+          "policy": "pareto",
+          "objectives": [
+            {
+              "metric": "geomean_ratio",
+              "type": "number",
+              "direction": "minimize",
+              "minimum_gain": 0.01
+            },
+            {
+              "metric": "win_count",
+              "type": "number",
+              "direction": "maximize",
+              "minimum_gain": 1
+            }
+          ],
+          "constraints": [
+            {
+              "check": "tests",
+              "required": "pass"
+            }
+          ],
+          "budget": {
+            "max_candidates": 12,
+            "max_elapsed_seconds": 3600
+          }
+        },
+        "introduction": {},
+        "history": [
+          {
+            "id": "baseline",
+            "hypothesis": "Baseline",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "First feasible reference"
+            }
+          },
+          {
+            "id": "candidate-001",
+            "hypothesis": "Regime dispatch: memcpy for <16K & 128K..512K, 32B-aligned AVX2 temporal for L1/L2 & L3 (16K..128K, 512K..8M), and AVX2 streaming + NTA prefetch for >=8M",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "pareto comparison: better"
+            }
+          },
+          {
+            "id": "candidate-002",
+            "hypothesis": "8x unrolled temporal AVX2 (256B/iter) + hardware-prefetched AVX2 streaming without NTA hints improves 32K..64K, 4M, and 16M",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "pareto comparison: better"
+            }
+          },
+          {
+            "id": "candidate-003",
+            "hypothesis": "Extend 8x aligned AVX2 temporal down to 4096B, add T0 prefetch at 128K..512K (L2->L3 boundary), and unroll streaming to 8x for >=8M",
+            "decision": {
+              "action": "reject",
+              "relation": "worse",
+              "feasibility": "pass",
+              "reason": "pareto comparison: worse"
+            }
+          },
+          {
+            "id": "candidate-004",
+            "hypothesis": "Keep <16K and 128K..512K on std::memcpy, 8x aligned AVX2 temporal for 16K..128K and 512K..8M, and 8x HW-prefetched AVX2 streaming for >=8M",
+            "decision": {
+              "action": "reject",
+              "relation": "worse",
+              "feasibility": "pass",
+              "reason": "pareto comparison: worse"
+            }
+          }
+        ],
+        "remaining_candidates": 8
+      },
+      "hypothesis": "Use 8x aligned AVX2 temporal only where it clearly wins (16K..128K and 512K..8M) and std::memcpy elsewhere to eliminate >=8M variance/regressions",
+      "summary": "Simplified CandidateScenario to 8x aligned AVX2 temporal for 16K..128K and 512K..8M, std::memcpy elsewhere",
+      "digest": "d7f0fde65942d5df0b8fd2911b19285a7e0a41dafaa87b166dc6ad26c6b593b6",
+      "evaluation": {
+        "status": "complete",
+        "metrics": {
+          "geomean_ratio": 0.9177,
+          "win_count": 4
+        },
+        "checks": {
+          "tests": "pass"
+        },
+        "diagnostics": {
+          "best_ratio": 0.5133,
+          "worst_ratio": 1.0307,
+          "cases": {
+            "h16/p64": {
+              "memcpy_ns": 8.53,
+              "cand_ns": 8.54,
+              "ratio": 1.0009
+            },
+            "h16/p256": {
+              "memcpy_ns": 13.86,
+              "cand_ns": 13.81,
+              "ratio": 0.9959
+            },
+            "h16/p1024": {
+              "memcpy_ns": 26.76,
+              "cand_ns": 21.76,
+              "ratio": 0.8131
+            },
+            "h16/p4096": {
+              "memcpy_ns": 62.41,
+              "cand_ns": 63.89,
+              "ratio": 1.0238
+            },
+            "h16/p32768": {
+              "memcpy_ns": 1234.2,
+              "cand_ns": 1234.56,
+              "ratio": 1.0003
+            },
+            "h16/p65536": {
+              "memcpy_ns": 2545.95,
+              "cand_ns": 2538.73,
+              "ratio": 0.9972
+            },
+            "h16/p262144": {
+              "memcpy_ns": 12242.36,
+              "cand_ns": 12333.82,
+              "ratio": 1.0075
+            },
+            "h16/p4194304": {
+              "memcpy_ns": 612017.13,
+              "cand_ns": 314130.7,
+              "ratio": 0.5133
+            },
+            "h16/p16777216": {
+              "memcpy_ns": 2041460.81,
+              "cand_ns": 1969719.5,
+              "ratio": 0.9649
+            },
+            "h8/p64": {
+              "memcpy_ns": 2.17,
+              "cand_ns": 2.15,
+              "ratio": 0.994
+            },
+            "h8/p256": {
+              "memcpy_ns": 6.99,
+              "cand_ns": 7.01,
+              "ratio": 1.0018
+            },
+            "h8/p1024": {
+              "memcpy_ns": 15.51,
+              "cand_ns": 15.73,
+              "ratio": 1.0143
+            },
+            "h8/p4096": {
+              "memcpy_ns": 59.78,
+              "cand_ns": 61.61,
+              "ratio": 1.0307
+            },
+            "h8/p32768": {
+              "memcpy_ns": 1232.47,
+              "cand_ns": 1197.38,
+              "ratio": 0.9715
+            },
+            "h8/p65536": {
+              "memcpy_ns": 2530.4,
+              "cand_ns": 2519.72,
+              "ratio": 0.9958
+            },
+            "h8/p262144": {
+              "memcpy_ns": 12284.77,
+              "cand_ns": 12157.47,
+              "ratio": 0.9896
+            },
+            "h8/p4194304": {
+              "memcpy_ns": 614263.77,
+              "cand_ns": 321693.32,
+              "ratio": 0.5237
+            },
+            "h8/p16777216": {
+              "memcpy_ns": 2079929.11,
+              "cand_ns": 2057383.44,
+              "ratio": 0.9892
+            }
+          }
+        },
+        "provenance": {
+          "artifact_digest": "d7f0fde65942d5df0b8fd2911b19285a7e0a41dafaa87b166dc6ad26c6b593b6",
+          "evaluator": [
+            "/usr/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py"
+          ],
+          "measured_at": 1795682892.0430005
+        }
+      },
+      "decision": {
+        "action": "reject",
+        "relation": "worse",
+        "feasibility": "pass",
+        "reason": "pareto comparison: worse"
+      }
+    }
+  ],
+  "frontier": [
+    "candidate-002"
+  ],
+  "budget": {
+    "max_candidates": 12,
+    "max_elapsed_seconds": 3600
+  },
+  "commands": {},
+  "sequence": 23,
+  "elapsed_seconds": 430.6593825817108
+}

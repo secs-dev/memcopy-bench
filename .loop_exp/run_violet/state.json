@@ -1,0 +1,1397 @@
+{
+  "evaluator_files": {
+    "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3": "d78f9cf7178ecff09963551399855543c297f37ac207e626228bfe43cb26a70c",
+    "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_violet.py": "3c21298cf11d06cc5c22745ef9b392927010c264c2d5de46d95ca9ca4c2b5cbb"
+  },
+  "schema_version": 1,
+  "name": "VioletCopy Full-Spectrum Optimization",
+  "spec": {
+    "name": "VioletCopy Full-Spectrum Optimization",
+    "source": "./source_violet",
+    "description": "Improve VioletCopy across additional sizes (1KB, 4KB, 256KB, 4MB, 16MB) while preserving 128-512B and 32-64KB wins.",
+    "evaluator": [
+      "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+      "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_violet.py"
+    ],
+    "policy": "pareto",
+    "objectives": [
+      {
+        "metric": "geomean_ratio",
+        "type": "number",
+        "direction": "minimize",
+        "minimum_gain": 0.01
+      },
+      {
+        "metric": "sig_wins",
+        "type": "number",
+        "direction": "maximize",
+        "minimum_gain": 1
+      }
+    ],
+    "constraints": [
+      {
+        "check": "tests",
+        "required": "pass"
+      }
+    ],
+    "budget": {
+      "max_candidates": 8,
+      "max_elapsed_seconds": 1800
+    }
+  },
+  "created_at": 1795689555.2053258,
+  "status": "ready",
+  "incumbent": "candidate-001",
+  "pending": null,
+  "attempts": [
+    {
+      "id": "baseline",
+      "parent": null,
+      "artifact": "/home/modernovo/labs/memcp-bench/.loop_exp/run_violet/baseline/artifact",
+      "workspace": "/home/modernovo/labs/memcp-bench/.loop_exp/run_violet/baseline/artifact",
+      "digest": "e90781d7efdb6cafaa6dc044656f80ec8c8d8723e4a90b381b9fae031fb8b07a",
+      "context": {},
+      "hypothesis": "Baseline",
+      "summary": "Initial reference",
+      "evaluation": {
+        "status": "complete",
+        "metrics": {
+          "geomean_ratio": 0.9506,
+          "sig_wins": 8
+        },
+        "checks": {
+          "tests": "pass"
+        },
+        "diagnostics": {
+          "best_ratio": 0.6824,
+          "worst_ratio": 1.0923,
+          "cases": {
+            "h16/p64": {
+              "memcpy_ns": 8.57,
+              "cand_ns": 8.54,
+              "ratio": 0.9964,
+              "p_mwu": 0.3447
+            },
+            "h16/p128": {
+              "memcpy_ns": 10.19,
+              "cand_ns": 9.78,
+              "ratio": 0.9593,
+              "p_mwu": 0.00058
+            },
+            "h16/p256": {
+              "memcpy_ns": 13.47,
+              "cand_ns": 10.76,
+              "ratio": 0.7985,
+              "p_mwu": 0.00018
+            },
+            "h16/p512": {
+              "memcpy_ns": 14.27,
+              "cand_ns": 13.82,
+              "ratio": 0.9686,
+              "p_mwu": 0.00131
+            },
+            "h16/p1024": {
+              "memcpy_ns": 22.39,
+              "cand_ns": 21.84,
+              "ratio": 0.9754,
+              "p_mwu": 0.18588
+            },
+            "h16/p4096": {
+              "memcpy_ns": 64.0,
+              "cand_ns": 64.08,
+              "ratio": 1.0012,
+              "p_mwu": 0.79134
+            },
+            "h16/p32768": {
+              "memcpy_ns": 1208.0,
+              "cand_ns": 1070.35,
+              "ratio": 0.886,
+              "p_mwu": 0.00018
+            },
+            "h16/p65536": {
+              "memcpy_ns": 2408.99,
+              "cand_ns": 2225.9,
+              "ratio": 0.924,
+              "p_mwu": 0.00018
+            },
+            "h16/p262144": {
+              "memcpy_ns": 12392.98,
+              "cand_ns": 12429.98,
+              "ratio": 1.003,
+              "p_mwu": 0.67758
+            },
+            "h16/p4194304": {
+              "memcpy_ns": 628519.06,
+              "cand_ns": 636081.33,
+              "ratio": 1.012,
+              "p_mwu": 0.27304
+            },
+            "h16/p16777216": {
+              "memcpy_ns": 1706892.79,
+              "cand_ns": 1664057.46,
+              "ratio": 0.9749,
+              "p_mwu": 0.52052
+            },
+            "h8/p64": {
+              "memcpy_ns": 2.16,
+              "cand_ns": 2.17,
+              "ratio": 1.0032,
+              "p_mwu": 1.0
+            },
+            "h8/p128": {
+              "memcpy_ns": 3.81,
+              "cand_ns": 3.28,
+              "ratio": 0.8609,
+              "p_mwu": 0.00018
+            },
+            "h8/p256": {
+              "memcpy_ns": 7.06,
+              "cand_ns": 4.82,
+              "ratio": 0.6824,
+              "p_mwu": 0.00018
+            },
+            "h8/p512": {
+              "memcpy_ns": 13.29,
+              "cand_ns": 13.99,
+              "ratio": 1.0524,
+              "p_mwu": 0.00018
+            },
+            "h8/p1024": {
+              "memcpy_ns": 17.04,
+              "cand_ns": 17.09,
+              "ratio": 1.0033,
+              "p_mwu": 0.57075
+            },
+            "h8/p4096": {
+              "memcpy_ns": 59.53,
+              "cand_ns": 58.88,
+              "ratio": 0.9892,
+              "p_mwu": 0.57075
+            },
+            "h8/p32768": {
+              "memcpy_ns": 1184.37,
+              "cand_ns": 1091.15,
+              "ratio": 0.9213,
+              "p_mwu": 0.00033
+            },
+            "h8/p65536": {
+              "memcpy_ns": 2425.66,
+              "cand_ns": 2256.99,
+              "ratio": 0.9305,
+              "p_mwu": 0.00025
+            },
+            "h8/p262144": {
+              "memcpy_ns": 12308.68,
+              "cand_ns": 12318.86,
+              "ratio": 1.0008,
+              "p_mwu": 0.96985
+            },
+            "h8/p4194304": {
+              "memcpy_ns": 643821.63,
+              "cand_ns": 625314.27,
+              "ratio": 0.9713,
+              "p_mwu": 0.52052
+            },
+            "h8/p16777216": {
+              "memcpy_ns": 1668067.47,
+              "cand_ns": 1822023.78,
+              "ratio": 1.0923,
+              "p_mwu": 0.38467
+            }
+          }
+        },
+        "provenance": {
+          "artifact_digest": "e90781d7efdb6cafaa6dc044656f80ec8c8d8723e4a90b381b9fae031fb8b07a",
+          "evaluator": [
+            "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_violet.py"
+          ],
+          "measured_at": 1795689620.7575607
+        }
+      },
+      "decision": {
+        "action": "select",
+        "relation": "better",
+        "feasibility": "pass",
+        "reason": "First feasible reference"
+      }
+    },
+    {
+      "id": "candidate-001",
+      "parent": "baseline",
+      "workspace": "/home/modernovo/labs/memcp-bench/.loop_exp/run_violet/candidates/candidate-001/workspace",
+      "artifact": "/home/modernovo/labs/memcp-bench/.loop_exp/run_violet/candidates/candidate-001/artifact",
+      "context": {
+        "parent_id": "baseline",
+        "parent_digest": "e90781d7efdb6cafaa6dc044656f80ec8c8d8723e4a90b381b9fae031fb8b07a",
+        "parent_evaluation": {
+          "status": "complete",
+          "metrics": {
+            "geomean_ratio": 0.9506,
+            "sig_wins": 8
+          },
+          "checks": {
+            "tests": "pass"
+          },
+          "diagnostics": {
+            "best_ratio": 0.6824,
+            "worst_ratio": 1.0923,
+            "cases": {
+              "h16/p64": {
+                "memcpy_ns": 8.57,
+                "cand_ns": 8.54,
+                "ratio": 0.9964,
+                "p_mwu": 0.3447
+              },
+              "h16/p128": {
+                "memcpy_ns": 10.19,
+                "cand_ns": 9.78,
+                "ratio": 0.9593,
+                "p_mwu": 0.00058
+              },
+              "h16/p256": {
+                "memcpy_ns": 13.47,
+                "cand_ns": 10.76,
+                "ratio": 0.7985,
+                "p_mwu": 0.00018
+              },
+              "h16/p512": {
+                "memcpy_ns": 14.27,
+                "cand_ns": 13.82,
+                "ratio": 0.9686,
+                "p_mwu": 0.00131
+              },
+              "h16/p1024": {
+                "memcpy_ns": 22.39,
+                "cand_ns": 21.84,
+                "ratio": 0.9754,
+                "p_mwu": 0.18588
+              },
+              "h16/p4096": {
+                "memcpy_ns": 64.0,
+                "cand_ns": 64.08,
+                "ratio": 1.0012,
+                "p_mwu": 0.79134
+              },
+              "h16/p32768": {
+                "memcpy_ns": 1208.0,
+                "cand_ns": 1070.35,
+                "ratio": 0.886,
+                "p_mwu": 0.00018
+              },
+              "h16/p65536": {
+                "memcpy_ns": 2408.99,
+                "cand_ns": 2225.9,
+                "ratio": 0.924,
+                "p_mwu": 0.00018
+              },
+              "h16/p262144": {
+                "memcpy_ns": 12392.98,
+                "cand_ns": 12429.98,
+                "ratio": 1.003,
+                "p_mwu": 0.67758
+              },
+              "h16/p4194304": {
+                "memcpy_ns": 628519.06,
+                "cand_ns": 636081.33,
+                "ratio": 1.012,
+                "p_mwu": 0.27304
+              },
+              "h16/p16777216": {
+                "memcpy_ns": 1706892.79,
+                "cand_ns": 1664057.46,
+                "ratio": 0.9749,
+                "p_mwu": 0.52052
+              },
+              "h8/p64": {
+                "memcpy_ns": 2.16,
+                "cand_ns": 2.17,
+                "ratio": 1.0032,
+                "p_mwu": 1.0
+              },
+              "h8/p128": {
+                "memcpy_ns": 3.81,
+                "cand_ns": 3.28,
+                "ratio": 0.8609,
+                "p_mwu": 0.00018
+              },
+              "h8/p256": {
+                "memcpy_ns": 7.06,
+                "cand_ns": 4.82,
+                "ratio": 0.6824,
+                "p_mwu": 0.00018
+              },
+              "h8/p512": {
+                "memcpy_ns": 13.29,
+                "cand_ns": 13.99,
+                "ratio": 1.0524,
+                "p_mwu": 0.00018
+              },
+              "h8/p1024": {
+                "memcpy_ns": 17.04,
+                "cand_ns": 17.09,
+                "ratio": 1.0033,
+                "p_mwu": 0.57075
+              },
+              "h8/p4096": {
+                "memcpy_ns": 59.53,
+                "cand_ns": 58.88,
+                "ratio": 0.9892,
+                "p_mwu": 0.57075
+              },
+              "h8/p32768": {
+                "memcpy_ns": 1184.37,
+                "cand_ns": 1091.15,
+                "ratio": 0.9213,
+                "p_mwu": 0.00033
+              },
+              "h8/p65536": {
+                "memcpy_ns": 2425.66,
+                "cand_ns": 2256.99,
+                "ratio": 0.9305,
+                "p_mwu": 0.00025
+              },
+              "h8/p262144": {
+                "memcpy_ns": 12308.68,
+                "cand_ns": 12318.86,
+                "ratio": 1.0008,
+                "p_mwu": 0.96985
+              },
+              "h8/p4194304": {
+                "memcpy_ns": 643821.63,
+                "cand_ns": 625314.27,
+                "ratio": 0.9713,
+                "p_mwu": 0.52052
+              },
+              "h8/p16777216": {
+                "memcpy_ns": 1668067.47,
+                "cand_ns": 1822023.78,
+                "ratio": 1.0923,
+                "p_mwu": 0.38467
+              }
+            }
+          },
+          "provenance": {
+            "artifact_digest": "e90781d7efdb6cafaa6dc044656f80ec8c8d8723e4a90b381b9fae031fb8b07a",
+            "evaluator": [
+              "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+              "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_violet.py"
+            ],
+            "measured_at": 1795689620.7575607
+          }
+        },
+        "task": {
+          "name": "VioletCopy Full-Spectrum Optimization",
+          "source": "./source_violet",
+          "description": "Improve VioletCopy across additional sizes (1KB, 4KB, 256KB, 4MB, 16MB) while preserving 128-512B and 32-64KB wins.",
+          "evaluator": [
+            "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_violet.py"
+          ],
+          "policy": "pareto",
+          "objectives": [
+            {
+              "metric": "geomean_ratio",
+              "type": "number",
+              "direction": "minimize",
+              "minimum_gain": 0.01
+            },
+            {
+              "metric": "sig_wins",
+              "type": "number",
+              "direction": "maximize",
+              "minimum_gain": 1
+            }
+          ],
+          "constraints": [
+            {
+              "check": "tests",
+              "required": "pass"
+            }
+          ],
+          "budget": {
+            "max_candidates": 8,
+            "max_elapsed_seconds": 1800
+          }
+        },
+        "introduction": {},
+        "history": [
+          {
+            "id": "baseline",
+            "hypothesis": "Baseline",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "First feasible reference"
+            }
+          }
+        ],
+        "remaining_candidates": 8
+      },
+      "hypothesis": "Add copy_avx2_aligned_temporal_t0 for 2MB..4MB (L3-resident) on top of VioletCopy",
+      "summary": "Extended VioletCopy ShortFallback chain with 2MB..4MB aligned AVX2 temporal + T0 prefetch",
+      "digest": "4b955e2d8c677cd85a3a37f2ac384737878bc754705017df938009d75f20bd7d",
+      "evaluation": {
+        "status": "complete",
+        "metrics": {
+          "geomean_ratio": 0.9109,
+          "sig_wins": 9
+        },
+        "checks": {
+          "tests": "pass"
+        },
+        "diagnostics": {
+          "best_ratio": 0.5515,
+          "worst_ratio": 1.041,
+          "cases": {
+            "h16/p64": {
+              "memcpy_ns": 8.55,
+              "cand_ns": 8.55,
+              "ratio": 0.9995,
+              "p_mwu": 0.96985
+            },
+            "h16/p128": {
+              "memcpy_ns": 10.18,
+              "cand_ns": 9.77,
+              "ratio": 0.9591,
+              "p_mwu": 0.00018
+            },
+            "h16/p256": {
+              "memcpy_ns": 13.42,
+              "cand_ns": 10.57,
+              "ratio": 0.7873,
+              "p_mwu": 0.00018
+            },
+            "h16/p512": {
+              "memcpy_ns": 14.25,
+              "cand_ns": 13.82,
+              "ratio": 0.9693,
+              "p_mwu": 0.00171
+            },
+            "h16/p1024": {
+              "memcpy_ns": 22.42,
+              "cand_ns": 21.85,
+              "ratio": 0.9746,
+              "p_mwu": 0.18588
+            },
+            "h16/p4096": {
+              "memcpy_ns": 62.16,
+              "cand_ns": 64.58,
+              "ratio": 1.0389,
+              "p_mwu": 0.14047
+            },
+            "h16/p32768": {
+              "memcpy_ns": 1195.68,
+              "cand_ns": 1095.49,
+              "ratio": 0.9162,
+              "p_mwu": 0.01133
+            },
+            "h16/p65536": {
+              "memcpy_ns": 2439.22,
+              "cand_ns": 2386.57,
+              "ratio": 0.9784,
+              "p_mwu": 0.00171
+            },
+            "h16/p262144": {
+              "memcpy_ns": 12456.93,
+              "cand_ns": 12143.5,
+              "ratio": 0.9748,
+              "p_mwu": 0.10411
+            },
+            "h16/p4194304": {
+              "memcpy_ns": 624061.33,
+              "cand_ns": 365472.03,
+              "ratio": 0.5856,
+              "p_mwu": 0.00018
+            },
+            "h16/p16777216": {
+              "memcpy_ns": 1663044.47,
+              "cand_ns": 1731278.09,
+              "ratio": 1.041,
+              "p_mwu": 0.24132
+            },
+            "h8/p64": {
+              "memcpy_ns": 2.14,
+              "cand_ns": 2.16,
+              "ratio": 1.0073,
+              "p_mwu": 0.67758
+            },
+            "h8/p128": {
+              "memcpy_ns": 3.78,
+              "cand_ns": 3.28,
+              "ratio": 0.8669,
+              "p_mwu": 0.00018
+            },
+            "h8/p256": {
+              "memcpy_ns": 6.96,
+              "cand_ns": 5.69,
+              "ratio": 0.8177,
+              "p_mwu": 0.00018
+            },
+            "h8/p512": {
+              "memcpy_ns": 12.49,
+              "cand_ns": 11.83,
+              "ratio": 0.9467,
+              "p_mwu": 0.00018
+            },
+            "h8/p1024": {
+              "memcpy_ns": 18.27,
+              "cand_ns": 18.4,
+              "ratio": 1.0069,
+              "p_mwu": 0.01133
+            },
+            "h8/p4096": {
+              "memcpy_ns": 58.09,
+              "cand_ns": 58.27,
+              "ratio": 1.0031,
+              "p_mwu": 1.0
+            },
+            "h8/p32768": {
+              "memcpy_ns": 1193.37,
+              "cand_ns": 1107.46,
+              "ratio": 0.928,
+              "p_mwu": 0.02575
+            },
+            "h8/p65536": {
+              "memcpy_ns": 2453.18,
+              "cand_ns": 2443.75,
+              "ratio": 0.9962,
+              "p_mwu": 0.47268
+            },
+            "h8/p262144": {
+              "memcpy_ns": 12771.3,
+              "cand_ns": 12292.63,
+              "ratio": 0.9625,
+              "p_mwu": 0.47268
+            },
+            "h8/p4194304": {
+              "memcpy_ns": 636313.52,
+              "cand_ns": 350939.46,
+              "ratio": 0.5515,
+              "p_mwu": 0.00018
+            },
+            "h8/p16777216": {
+              "memcpy_ns": 1713603.92,
+              "cand_ns": 1664149.39,
+              "ratio": 0.9711,
+              "p_mwu": 0.38467
+            }
+          }
+        },
+        "provenance": {
+          "artifact_digest": "4b955e2d8c677cd85a3a37f2ac384737878bc754705017df938009d75f20bd7d",
+          "evaluator": [
+            "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_violet.py"
+          ],
+          "measured_at": 1795689716.5003493
+        }
+      },
+      "decision": {
+        "action": "select",
+        "relation": "better",
+        "feasibility": "pass",
+        "reason": "pareto comparison: better"
+      }
+    },
+    {
+      "id": "candidate-002",
+      "parent": "candidate-001",
+      "workspace": "/home/modernovo/labs/memcp-bench/.loop_exp/run_violet/candidates/candidate-002/workspace",
+      "artifact": "/home/modernovo/labs/memcp-bench/.loop_exp/run_violet/candidates/candidate-002/artifact",
+      "context": {
+        "parent_id": "candidate-001",
+        "parent_digest": "4b955e2d8c677cd85a3a37f2ac384737878bc754705017df938009d75f20bd7d",
+        "parent_evaluation": {
+          "status": "complete",
+          "metrics": {
+            "geomean_ratio": 0.9109,
+            "sig_wins": 9
+          },
+          "checks": {
+            "tests": "pass"
+          },
+          "diagnostics": {
+            "best_ratio": 0.5515,
+            "worst_ratio": 1.041,
+            "cases": {
+              "h16/p64": {
+                "memcpy_ns": 8.55,
+                "cand_ns": 8.55,
+                "ratio": 0.9995,
+                "p_mwu": 0.96985
+              },
+              "h16/p128": {
+                "memcpy_ns": 10.18,
+                "cand_ns": 9.77,
+                "ratio": 0.9591,
+                "p_mwu": 0.00018
+              },
+              "h16/p256": {
+                "memcpy_ns": 13.42,
+                "cand_ns": 10.57,
+                "ratio": 0.7873,
+                "p_mwu": 0.00018
+              },
+              "h16/p512": {
+                "memcpy_ns": 14.25,
+                "cand_ns": 13.82,
+                "ratio": 0.9693,
+                "p_mwu": 0.00171
+              },
+              "h16/p1024": {
+                "memcpy_ns": 22.42,
+                "cand_ns": 21.85,
+                "ratio": 0.9746,
+                "p_mwu": 0.18588
+              },
+              "h16/p4096": {
+                "memcpy_ns": 62.16,
+                "cand_ns": 64.58,
+                "ratio": 1.0389,
+                "p_mwu": 0.14047
+              },
+              "h16/p32768": {
+                "memcpy_ns": 1195.68,
+                "cand_ns": 1095.49,
+                "ratio": 0.9162,
+                "p_mwu": 0.01133
+              },
+              "h16/p65536": {
+                "memcpy_ns": 2439.22,
+                "cand_ns": 2386.57,
+                "ratio": 0.9784,
+                "p_mwu": 0.00171
+              },
+              "h16/p262144": {
+                "memcpy_ns": 12456.93,
+                "cand_ns": 12143.5,
+                "ratio": 0.9748,
+                "p_mwu": 0.10411
+              },
+              "h16/p4194304": {
+                "memcpy_ns": 624061.33,
+                "cand_ns": 365472.03,
+                "ratio": 0.5856,
+                "p_mwu": 0.00018
+              },
+              "h16/p16777216": {
+                "memcpy_ns": 1663044.47,
+                "cand_ns": 1731278.09,
+                "ratio": 1.041,
+                "p_mwu": 0.24132
+              },
+              "h8/p64": {
+                "memcpy_ns": 2.14,
+                "cand_ns": 2.16,
+                "ratio": 1.0073,
+                "p_mwu": 0.67758
+              },
+              "h8/p128": {
+                "memcpy_ns": 3.78,
+                "cand_ns": 3.28,
+                "ratio": 0.8669,
+                "p_mwu": 0.00018
+              },
+              "h8/p256": {
+                "memcpy_ns": 6.96,
+                "cand_ns": 5.69,
+                "ratio": 0.8177,
+                "p_mwu": 0.00018
+              },
+              "h8/p512": {
+                "memcpy_ns": 12.49,
+                "cand_ns": 11.83,
+                "ratio": 0.9467,
+                "p_mwu": 0.00018
+              },
+              "h8/p1024": {
+                "memcpy_ns": 18.27,
+                "cand_ns": 18.4,
+                "ratio": 1.0069,
+                "p_mwu": 0.01133
+              },
+              "h8/p4096": {
+                "memcpy_ns": 58.09,
+                "cand_ns": 58.27,
+                "ratio": 1.0031,
+                "p_mwu": 1.0
+              },
+              "h8/p32768": {
+                "memcpy_ns": 1193.37,
+                "cand_ns": 1107.46,
+                "ratio": 0.928,
+                "p_mwu": 0.02575
+              },
+              "h8/p65536": {
+                "memcpy_ns": 2453.18,
+                "cand_ns": 2443.75,
+                "ratio": 0.9962,
+                "p_mwu": 0.47268
+              },
+              "h8/p262144": {
+                "memcpy_ns": 12771.3,
+                "cand_ns": 12292.63,
+                "ratio": 0.9625,
+                "p_mwu": 0.47268
+              },
+              "h8/p4194304": {
+                "memcpy_ns": 636313.52,
+                "cand_ns": 350939.46,
+                "ratio": 0.5515,
+                "p_mwu": 0.00018
+              },
+              "h8/p16777216": {
+                "memcpy_ns": 1713603.92,
+                "cand_ns": 1664149.39,
+                "ratio": 0.9711,
+                "p_mwu": 0.38467
+              }
+            }
+          },
+          "provenance": {
+            "artifact_digest": "4b955e2d8c677cd85a3a37f2ac384737878bc754705017df938009d75f20bd7d",
+            "evaluator": [
+              "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+              "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_violet.py"
+            ],
+            "measured_at": 1795689716.5003493
+          }
+        },
+        "task": {
+          "name": "VioletCopy Full-Spectrum Optimization",
+          "source": "./source_violet",
+          "description": "Improve VioletCopy across additional sizes (1KB, 4KB, 256KB, 4MB, 16MB) while preserving 128-512B and 32-64KB wins.",
+          "evaluator": [
+            "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_violet.py"
+          ],
+          "policy": "pareto",
+          "objectives": [
+            {
+              "metric": "geomean_ratio",
+              "type": "number",
+              "direction": "minimize",
+              "minimum_gain": 0.01
+            },
+            {
+              "metric": "sig_wins",
+              "type": "number",
+              "direction": "maximize",
+              "minimum_gain": 1
+            }
+          ],
+          "constraints": [
+            {
+              "check": "tests",
+              "required": "pass"
+            }
+          ],
+          "budget": {
+            "max_candidates": 8,
+            "max_elapsed_seconds": 1800
+          }
+        },
+        "introduction": {},
+        "history": [
+          {
+            "id": "baseline",
+            "hypothesis": "Baseline",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "First feasible reference"
+            }
+          },
+          {
+            "id": "candidate-001",
+            "hypothesis": "Add copy_avx2_aligned_temporal_t0 for 2MB..4MB (L3-resident) on top of VioletCopy",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "pareto comparison: better"
+            }
+          }
+        ],
+        "remaining_candidates": 7
+      },
+      "hypothesis": "Test copy_avx2_prefetch at 1..2KB and copy_rep_movsb (ERMS) at 256KB on top of candidate-001",
+      "summary": "Added 1..2KB AVX2 prefetch and 256KB ERMS rep movsb to ShortFallback chain",
+      "digest": "21c938f16702e4708fb43e1444a67cb9ea02b65862cb65a68414c808a089e36d",
+      "evaluation": {
+        "status": "complete",
+        "metrics": {
+          "geomean_ratio": 0.9541,
+          "sig_wins": 9
+        },
+        "checks": {
+          "tests": "pass"
+        },
+        "diagnostics": {
+          "best_ratio": 0.5527,
+          "worst_ratio": 1.9914,
+          "cases": {
+            "h16/p64": {
+              "memcpy_ns": 8.55,
+              "cand_ns": 8.53,
+              "ratio": 0.9977,
+              "p_mwu": 0.52052
+            },
+            "h16/p128": {
+              "memcpy_ns": 10.15,
+              "cand_ns": 9.73,
+              "ratio": 0.9583,
+              "p_mwu": 0.00283
+            },
+            "h16/p256": {
+              "memcpy_ns": 14.38,
+              "cand_ns": 11.83,
+              "ratio": 0.8226,
+              "p_mwu": 0.00018
+            },
+            "h16/p512": {
+              "memcpy_ns": 14.3,
+              "cand_ns": 13.81,
+              "ratio": 0.9659,
+              "p_mwu": 0.00025
+            },
+            "h16/p1024": {
+              "memcpy_ns": 25.69,
+              "cand_ns": 27.66,
+              "ratio": 1.0763,
+              "p_mwu": 0.00018
+            },
+            "h16/p4096": {
+              "memcpy_ns": 62.31,
+              "cand_ns": 62.03,
+              "ratio": 0.9956,
+              "p_mwu": 0.73373
+            },
+            "h16/p32768": {
+              "memcpy_ns": 1206.89,
+              "cand_ns": 1094.61,
+              "ratio": 0.907,
+              "p_mwu": 0.0058
+            },
+            "h16/p65536": {
+              "memcpy_ns": 2427.62,
+              "cand_ns": 2235.22,
+              "ratio": 0.9207,
+              "p_mwu": 0.00728
+            },
+            "h16/p262144": {
+              "memcpy_ns": 12260.57,
+              "cand_ns": 12138.8,
+              "ratio": 0.9901,
+              "p_mwu": 0.18588
+            },
+            "h16/p4194304": {
+              "memcpy_ns": 636098.78,
+              "cand_ns": 351555.33,
+              "ratio": 0.5527,
+              "p_mwu": 0.00018
+            },
+            "h16/p16777216": {
+              "memcpy_ns": 1644530.0,
+              "cand_ns": 1927379.19,
+              "ratio": 1.172,
+              "p_mwu": 0.0058
+            },
+            "h8/p64": {
+              "memcpy_ns": 2.16,
+              "cand_ns": 2.15,
+              "ratio": 0.9957,
+              "p_mwu": 0.57075
+            },
+            "h8/p128": {
+              "memcpy_ns": 3.79,
+              "cand_ns": 3.26,
+              "ratio": 0.86,
+              "p_mwu": 0.00018
+            },
+            "h8/p256": {
+              "memcpy_ns": 7.0,
+              "cand_ns": 4.77,
+              "ratio": 0.681,
+              "p_mwu": 0.00018
+            },
+            "h8/p512": {
+              "memcpy_ns": 9.75,
+              "cand_ns": 19.42,
+              "ratio": 1.9914,
+              "p_mwu": 0.00018
+            },
+            "h8/p1024": {
+              "memcpy_ns": 15.1,
+              "cand_ns": 20.28,
+              "ratio": 1.3435,
+              "p_mwu": 0.00018
+            },
+            "h8/p4096": {
+              "memcpy_ns": 57.83,
+              "cand_ns": 58.08,
+              "ratio": 1.0043,
+              "p_mwu": 0.67758
+            },
+            "h8/p32768": {
+              "memcpy_ns": 1195.59,
+              "cand_ns": 1102.75,
+              "ratio": 0.9223,
+              "p_mwu": 0.00283
+            },
+            "h8/p65536": {
+              "memcpy_ns": 2412.98,
+              "cand_ns": 2333.77,
+              "ratio": 0.9672,
+              "p_mwu": 0.18588
+            },
+            "h8/p262144": {
+              "memcpy_ns": 12317.58,
+              "cand_ns": 12224.05,
+              "ratio": 0.9924,
+              "p_mwu": 1.0
+            },
+            "h8/p4194304": {
+              "memcpy_ns": 626543.4,
+              "cand_ns": 357497.72,
+              "ratio": 0.5706,
+              "p_mwu": 0.00018
+            },
+            "h8/p16777216": {
+              "memcpy_ns": 1714197.5,
+              "cand_ns": 1767225.03,
+              "ratio": 1.0309,
+              "p_mwu": 0.79134
+            }
+          }
+        },
+        "provenance": {
+          "artifact_digest": "21c938f16702e4708fb43e1444a67cb9ea02b65862cb65a68414c808a089e36d",
+          "evaluator": [
+            "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_violet.py"
+          ],
+          "measured_at": 1795689812.5237086
+        }
+      },
+      "decision": {
+        "action": "reject",
+        "relation": "worse",
+        "feasibility": "pass",
+        "reason": "pareto comparison: worse"
+      }
+    },
+    {
+      "id": "candidate-003",
+      "parent": "candidate-001",
+      "workspace": "/home/modernovo/labs/memcp-bench/.loop_exp/run_violet/candidates/candidate-003/workspace",
+      "artifact": "/home/modernovo/labs/memcp-bench/.loop_exp/run_violet/candidates/candidate-003/artifact",
+      "context": {
+        "parent_id": "candidate-001",
+        "parent_digest": "4b955e2d8c677cd85a3a37f2ac384737878bc754705017df938009d75f20bd7d",
+        "parent_evaluation": {
+          "status": "complete",
+          "metrics": {
+            "geomean_ratio": 0.9109,
+            "sig_wins": 9
+          },
+          "checks": {
+            "tests": "pass"
+          },
+          "diagnostics": {
+            "best_ratio": 0.5515,
+            "worst_ratio": 1.041,
+            "cases": {
+              "h16/p64": {
+                "memcpy_ns": 8.55,
+                "cand_ns": 8.55,
+                "ratio": 0.9995,
+                "p_mwu": 0.96985
+              },
+              "h16/p128": {
+                "memcpy_ns": 10.18,
+                "cand_ns": 9.77,
+                "ratio": 0.9591,
+                "p_mwu": 0.00018
+              },
+              "h16/p256": {
+                "memcpy_ns": 13.42,
+                "cand_ns": 10.57,
+                "ratio": 0.7873,
+                "p_mwu": 0.00018
+              },
+              "h16/p512": {
+                "memcpy_ns": 14.25,
+                "cand_ns": 13.82,
+                "ratio": 0.9693,
+                "p_mwu": 0.00171
+              },
+              "h16/p1024": {
+                "memcpy_ns": 22.42,
+                "cand_ns": 21.85,
+                "ratio": 0.9746,
+                "p_mwu": 0.18588
+              },
+              "h16/p4096": {
+                "memcpy_ns": 62.16,
+                "cand_ns": 64.58,
+                "ratio": 1.0389,
+                "p_mwu": 0.14047
+              },
+              "h16/p32768": {
+                "memcpy_ns": 1195.68,
+                "cand_ns": 1095.49,
+                "ratio": 0.9162,
+                "p_mwu": 0.01133
+              },
+              "h16/p65536": {
+                "memcpy_ns": 2439.22,
+                "cand_ns": 2386.57,
+                "ratio": 0.9784,
+                "p_mwu": 0.00171
+              },
+              "h16/p262144": {
+                "memcpy_ns": 12456.93,
+                "cand_ns": 12143.5,
+                "ratio": 0.9748,
+                "p_mwu": 0.10411
+              },
+              "h16/p4194304": {
+                "memcpy_ns": 624061.33,
+                "cand_ns": 365472.03,
+                "ratio": 0.5856,
+                "p_mwu": 0.00018
+              },
+              "h16/p16777216": {
+                "memcpy_ns": 1663044.47,
+                "cand_ns": 1731278.09,
+                "ratio": 1.041,
+                "p_mwu": 0.24132
+              },
+              "h8/p64": {
+                "memcpy_ns": 2.14,
+                "cand_ns": 2.16,
+                "ratio": 1.0073,
+                "p_mwu": 0.67758
+              },
+              "h8/p128": {
+                "memcpy_ns": 3.78,
+                "cand_ns": 3.28,
+                "ratio": 0.8669,
+                "p_mwu": 0.00018
+              },
+              "h8/p256": {
+                "memcpy_ns": 6.96,
+                "cand_ns": 5.69,
+                "ratio": 0.8177,
+                "p_mwu": 0.00018
+              },
+              "h8/p512": {
+                "memcpy_ns": 12.49,
+                "cand_ns": 11.83,
+                "ratio": 0.9467,
+                "p_mwu": 0.00018
+              },
+              "h8/p1024": {
+                "memcpy_ns": 18.27,
+                "cand_ns": 18.4,
+                "ratio": 1.0069,
+                "p_mwu": 0.01133
+              },
+              "h8/p4096": {
+                "memcpy_ns": 58.09,
+                "cand_ns": 58.27,
+                "ratio": 1.0031,
+                "p_mwu": 1.0
+              },
+              "h8/p32768": {
+                "memcpy_ns": 1193.37,
+                "cand_ns": 1107.46,
+                "ratio": 0.928,
+                "p_mwu": 0.02575
+              },
+              "h8/p65536": {
+                "memcpy_ns": 2453.18,
+                "cand_ns": 2443.75,
+                "ratio": 0.9962,
+                "p_mwu": 0.47268
+              },
+              "h8/p262144": {
+                "memcpy_ns": 12771.3,
+                "cand_ns": 12292.63,
+                "ratio": 0.9625,
+                "p_mwu": 0.47268
+              },
+              "h8/p4194304": {
+                "memcpy_ns": 636313.52,
+                "cand_ns": 350939.46,
+                "ratio": 0.5515,
+                "p_mwu": 0.00018
+              },
+              "h8/p16777216": {
+                "memcpy_ns": 1713603.92,
+                "cand_ns": 1664149.39,
+                "ratio": 0.9711,
+                "p_mwu": 0.38467
+              }
+            }
+          },
+          "provenance": {
+            "artifact_digest": "4b955e2d8c677cd85a3a37f2ac384737878bc754705017df938009d75f20bd7d",
+            "evaluator": [
+              "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+              "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_violet.py"
+            ],
+            "measured_at": 1795689716.5003493
+          }
+        },
+        "task": {
+          "name": "VioletCopy Full-Spectrum Optimization",
+          "source": "./source_violet",
+          "description": "Improve VioletCopy across additional sizes (1KB, 4KB, 256KB, 4MB, 16MB) while preserving 128-512B and 32-64KB wins.",
+          "evaluator": [
+            "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_violet.py"
+          ],
+          "policy": "pareto",
+          "objectives": [
+            {
+              "metric": "geomean_ratio",
+              "type": "number",
+              "direction": "minimize",
+              "minimum_gain": 0.01
+            },
+            {
+              "metric": "sig_wins",
+              "type": "number",
+              "direction": "maximize",
+              "minimum_gain": 1
+            }
+          ],
+          "constraints": [
+            {
+              "check": "tests",
+              "required": "pass"
+            }
+          ],
+          "budget": {
+            "max_candidates": 8,
+            "max_elapsed_seconds": 1800
+          }
+        },
+        "introduction": {},
+        "history": [
+          {
+            "id": "baseline",
+            "hypothesis": "Baseline",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "First feasible reference"
+            }
+          },
+          {
+            "id": "candidate-001",
+            "hypothesis": "Add copy_avx2_aligned_temporal_t0 for 2MB..4MB (L3-resident) on top of VioletCopy",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "pareto comparison: better"
+            }
+          },
+          {
+            "id": "candidate-002",
+            "hypothesis": "Test copy_avx2_prefetch at 1..2KB and copy_rep_movsb (ERMS) at 256KB on top of candidate-001",
+            "decision": {
+              "action": "reject",
+              "relation": "worse",
+              "feasibility": "pass",
+              "reason": "pareto comparison: worse"
+            }
+          }
+        ],
+        "remaining_candidates": 6
+      },
+      "hypothesis": "Add 4x HW-prefetched AVX2 streaming (>=12MB, >L3) on top of candidate-001",
+      "summary": "Added StreamHW4xScenario for >=12MB on top of candidate-001",
+      "digest": "63c7de94e0b018a283c2631669e153385eeed773ac590bce60ff3a2b752f2fcb",
+      "evaluation": {
+        "status": "complete",
+        "metrics": {
+          "geomean_ratio": 0.9396,
+          "sig_wins": 9
+        },
+        "checks": {
+          "tests": "pass"
+        },
+        "diagnostics": {
+          "best_ratio": 0.6013,
+          "worst_ratio": 1.8418,
+          "cases": {
+            "h16/p64": {
+              "memcpy_ns": 8.51,
+              "cand_ns": 8.54,
+              "ratio": 1.0043,
+              "p_mwu": 0.21229
+            },
+            "h16/p128": {
+              "memcpy_ns": 10.22,
+              "cand_ns": 9.8,
+              "ratio": 0.9587,
+              "p_mwu": 0.00018
+            },
+            "h16/p256": {
+              "memcpy_ns": 13.52,
+              "cand_ns": 10.67,
+              "ratio": 0.7893,
+              "p_mwu": 0.00018
+            },
+            "h16/p512": {
+              "memcpy_ns": 14.25,
+              "cand_ns": 13.82,
+              "ratio": 0.9699,
+              "p_mwu": 0.0022
+            },
+            "h16/p1024": {
+              "memcpy_ns": 22.03,
+              "cand_ns": 21.78,
+              "ratio": 0.9887,
+              "p_mwu": 0.24132
+            },
+            "h16/p4096": {
+              "memcpy_ns": 63.68,
+              "cand_ns": 62.74,
+              "ratio": 0.9852,
+              "p_mwu": 0.52052
+            },
+            "h16/p32768": {
+              "memcpy_ns": 1208.29,
+              "cand_ns": 1104.45,
+              "ratio": 0.9141,
+              "p_mwu": 0.00018
+            },
+            "h16/p65536": {
+              "memcpy_ns": 2414.87,
+              "cand_ns": 2305.43,
+              "ratio": 0.9547,
+              "p_mwu": 0.01726
+            },
+            "h16/p262144": {
+              "memcpy_ns": 12339.07,
+              "cand_ns": 12307.79,
+              "ratio": 0.9975,
+              "p_mwu": 0.79134
+            },
+            "h16/p4194304": {
+              "memcpy_ns": 641064.96,
+              "cand_ns": 385482.43,
+              "ratio": 0.6013,
+              "p_mwu": 0.00018
+            },
+            "h16/p16777216": {
+              "memcpy_ns": 1839522.92,
+              "cand_ns": 1905218.0,
+              "ratio": 1.0357,
+              "p_mwu": 0.30749
+            },
+            "h8/p64": {
+              "memcpy_ns": 2.16,
+              "cand_ns": 2.16,
+              "ratio": 1.0011,
+              "p_mwu": 0.96985
+            },
+            "h8/p128": {
+              "memcpy_ns": 3.79,
+              "cand_ns": 3.26,
+              "ratio": 0.8588,
+              "p_mwu": 0.00018
+            },
+            "h8/p256": {
+              "memcpy_ns": 6.98,
+              "cand_ns": 4.73,
+              "ratio": 0.6782,
+              "p_mwu": 0.00018
+            },
+            "h8/p512": {
+              "memcpy_ns": 10.55,
+              "cand_ns": 19.42,
+              "ratio": 1.8418,
+              "p_mwu": 0.00018
+            },
+            "h8/p1024": {
+              "memcpy_ns": 18.83,
+              "cand_ns": 18.75,
+              "ratio": 0.9955,
+              "p_mwu": 0.21229
+            },
+            "h8/p4096": {
+              "memcpy_ns": 57.04,
+              "cand_ns": 59.45,
+              "ratio": 1.0423,
+              "p_mwu": 0.24132
+            },
+            "h8/p32768": {
+              "memcpy_ns": 1207.9,
+              "cand_ns": 1094.24,
+              "ratio": 0.9059,
+              "p_mwu": 0.00131
+            },
+            "h8/p65536": {
+              "memcpy_ns": 2472.16,
+              "cand_ns": 2361.56,
+              "ratio": 0.9553,
+              "p_mwu": 0.62318
+            },
+            "h8/p262144": {
+              "memcpy_ns": 12225.25,
+              "cand_ns": 12638.85,
+              "ratio": 1.0338,
+              "p_mwu": 0.21229
+            },
+            "h8/p4194304": {
+              "memcpy_ns": 640621.06,
+              "cand_ns": 402214.72,
+              "ratio": 0.6279,
+              "p_mwu": 0.01726
+            },
+            "h8/p16777216": {
+              "memcpy_ns": 1851352.75,
+              "cand_ns": 1931445.7,
+              "ratio": 1.0433,
+              "p_mwu": 0.16197
+            }
+          }
+        },
+        "provenance": {
+          "artifact_digest": "63c7de94e0b018a283c2631669e153385eeed773ac590bce60ff3a2b752f2fcb",
+          "evaluator": [
+            "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_violet.py"
+          ],
+          "measured_at": 1795689915.2201672
+        }
+      },
+      "decision": {
+        "action": "reject",
+        "relation": "worse",
+        "feasibility": "pass",
+        "reason": "pareto comparison: worse"
+      }
+    }
+  ],
+  "frontier": [
+    "candidate-001"
+  ],
+  "budget": {
+    "max_candidates": 8,
+    "max_elapsed_seconds": 1800
+  },
+  "commands": {},
+  "sequence": 14,
+  "elapsed_seconds": 291.7856912612915
+}

@@ -1,0 +1,166 @@
+{
+  "parent_id": "baseline",
+  "parent_digest": "ffa0b13d203aec1a3cf013cd93a5370bf015c10e9b79357a528af074a5dd9a9c",
+  "parent_evaluation": {
+    "status": "complete",
+    "metrics": {
+      "geomean_ratio": 1.0,
+      "win_count": 1
+    },
+    "checks": {
+      "tests": "pass"
+    },
+    "diagnostics": {
+      "best_ratio": 0.9389,
+      "worst_ratio": 1.0419,
+      "cases": {
+        "h16/p64": {
+          "memcpy_ns": 8.46,
+          "cand_ns": 8.46,
+          "ratio": 0.9995
+        },
+        "h16/p256": {
+          "memcpy_ns": 13.3,
+          "cand_ns": 13.28,
+          "ratio": 0.9991
+        },
+        "h16/p1024": {
+          "memcpy_ns": 21.36,
+          "cand_ns": 21.92,
+          "ratio": 1.026
+        },
+        "h16/p4096": {
+          "memcpy_ns": 60.53,
+          "cand_ns": 61.18,
+          "ratio": 1.0109
+        },
+        "h16/p32768": {
+          "memcpy_ns": 1239.45,
+          "cand_ns": 1238.02,
+          "ratio": 0.9988
+        },
+        "h16/p65536": {
+          "memcpy_ns": 3211.58,
+          "cand_ns": 3306.19,
+          "ratio": 1.0295
+        },
+        "h16/p262144": {
+          "memcpy_ns": 12106.82,
+          "cand_ns": 12135.97,
+          "ratio": 1.0024
+        },
+        "h16/p4194304": {
+          "memcpy_ns": 600717.45,
+          "cand_ns": 564026.89,
+          "ratio": 0.9389
+        },
+        "h16/p16777216": {
+          "memcpy_ns": 1955054.25,
+          "cand_ns": 1911554.89,
+          "ratio": 0.9778
+        },
+        "h8/p64": {
+          "memcpy_ns": 2.16,
+          "cand_ns": 2.17,
+          "ratio": 1.0028
+        },
+        "h8/p256": {
+          "memcpy_ns": 6.91,
+          "cand_ns": 7.06,
+          "ratio": 1.0219
+        },
+        "h8/p1024": {
+          "memcpy_ns": 14.95,
+          "cand_ns": 14.51,
+          "ratio": 0.9705
+        },
+        "h8/p4096": {
+          "memcpy_ns": 56.15,
+          "cand_ns": 58.51,
+          "ratio": 1.0419
+        },
+        "h8/p32768": {
+          "memcpy_ns": 1240.53,
+          "cand_ns": 1235.22,
+          "ratio": 0.9957
+        },
+        "h8/p65536": {
+          "memcpy_ns": 3206.39,
+          "cand_ns": 3269.73,
+          "ratio": 1.0198
+        },
+        "h8/p262144": {
+          "memcpy_ns": 12169.63,
+          "cand_ns": 12143.68,
+          "ratio": 0.9979
+        },
+        "h8/p4194304": {
+          "memcpy_ns": 608553.2,
+          "cand_ns": 599987.59,
+          "ratio": 0.9859
+        },
+        "h8/p16777216": {
+          "memcpy_ns": 2000029.82,
+          "cand_ns": 1971162.56,
+          "ratio": 0.9856
+        }
+      }
+    },
+    "provenance": {
+      "artifact_digest": "ffa0b13d203aec1a3cf013cd93a5370bf015c10e9b79357a528af074a5dd9a9c",
+      "evaluator": [
+        "/usr/bin/python3",
+        "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py"
+      ],
+      "measured_at": 1795682457.1687288
+    }
+  },
+  "task": {
+    "name": "Beat std::memcpy in BM_PacketScenario",
+    "source": "./source",
+    "description": "Find copy methods and scenario compositions that stably beat std::memcpy across header/payload sizes.",
+    "evaluator": [
+      "/usr/bin/python3",
+      "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py"
+    ],
+    "policy": "pareto",
+    "objectives": [
+      {
+        "metric": "geomean_ratio",
+        "type": "number",
+        "direction": "minimize",
+        "minimum_gain": 0.01
+      },
+      {
+        "metric": "win_count",
+        "type": "number",
+        "direction": "maximize",
+        "minimum_gain": 1
+      }
+    ],
+    "constraints": [
+      {
+        "check": "tests",
+        "required": "pass"
+      }
+    ],
+    "budget": {
+      "max_candidates": 12,
+      "max_elapsed_seconds": 3600
+    }
+  },
+  "introduction": {},
+  "history": [
+    {
+      "id": "baseline",
+      "hypothesis": "Baseline",
+      "decision": {
+        "action": "select",
+        "relation": "better",
+        "feasibility": "pass",
+        "reason": "First feasible reference"
+      }
+    }
+  ],
+  "remaining_candidates": 12
+}

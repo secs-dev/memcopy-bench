@@ -1,0 +1,2188 @@
+{
+  "evaluator_files": {
+    "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3": "d78f9cf7178ecff09963551399855543c297f37ac207e626228bfe43cb26a70c",
+    "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py": "8bab35d0f8be7858ec16242ea29f2b3ff1d1619ab3042fcf4dd1e66d75a76d3a"
+  },
+  "schema_version": 1,
+  "name": "Hybrid 2-Method Scenario Speedup",
+  "spec": {
+    "name": "Hybrid 2-Method Scenario Speedup",
+    "source": "./source_hybrid",
+    "description": "Combine unaligned 4x AVX2 (small) and 32B-aligned 8x AVX2 temporal (L1/L2) and iteratively optimize.",
+    "evaluator": [
+      "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+      "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+    ],
+    "policy": "pareto",
+    "objectives": [
+      {
+        "metric": "geomean_ratio",
+        "type": "number",
+        "direction": "minimize",
+        "minimum_gain": 0.01
+      },
+      {
+        "metric": "sig_wins",
+        "type": "number",
+        "direction": "maximize",
+        "minimum_gain": 1
+      }
+    ],
+    "constraints": [
+      {
+        "check": "tests",
+        "required": "pass"
+      }
+    ],
+    "budget": {
+      "max_candidates": 8,
+      "max_elapsed_seconds": 1800
+    }
+  },
+  "created_at": 1795685282.2832744,
+  "status": "ready",
+  "incumbent": "candidate-001",
+  "pending": null,
+  "attempts": [
+    {
+      "id": "baseline",
+      "parent": null,
+      "artifact": "/home/modernovo/labs/memcp-bench/.loop_exp/run_hybrid/baseline/artifact",
+      "workspace": "/home/modernovo/labs/memcp-bench/.loop_exp/run_hybrid/baseline/artifact",
+      "digest": "ffa0b13d203aec1a3cf013cd93a5370bf015c10e9b79357a528af074a5dd9a9c",
+      "context": {},
+      "hypothesis": "Baseline",
+      "summary": "Initial reference",
+      "evaluation": {
+        "status": "complete",
+        "metrics": {
+          "geomean_ratio": 0.9957,
+          "sig_wins": 1
+        },
+        "checks": {
+          "tests": "pass"
+        },
+        "diagnostics": {
+          "best_ratio": 0.9599,
+          "worst_ratio": 1.0386,
+          "cases": {
+            "h16/p64": {
+              "memcpy_ns": 8.45,
+              "cand_ns": 8.47,
+              "ratio": 1.0021,
+              "p_mwu": 0.6783
+            },
+            "h16/p128": {
+              "memcpy_ns": 10.05,
+              "cand_ns": 10.36,
+              "ratio": 1.0305,
+              "p_mwu": 0.53383
+            },
+            "h16/p256": {
+              "memcpy_ns": 13.42,
+              "cand_ns": 13.28,
+              "ratio": 0.9897,
+              "p_mwu": 0.58974
+            },
+            "h16/p512": {
+              "memcpy_ns": 14.18,
+              "cand_ns": 14.73,
+              "ratio": 1.0386,
+              "p_mwu": 0.24549
+            },
+            "h16/p1024": {
+              "memcpy_ns": 22.28,
+              "cand_ns": 22.07,
+              "ratio": 0.9906,
+              "p_mwu": 0.86823
+            },
+            "h16/p4096": {
+              "memcpy_ns": 64.23,
+              "cand_ns": 63.98,
+              "ratio": 0.9961,
+              "p_mwu": 0.50691
+            },
+            "h16/p32768": {
+              "memcpy_ns": 1213.69,
+              "cand_ns": 1213.99,
+              "ratio": 1.0003,
+              "p_mwu": 1.0
+            },
+            "h16/p65536": {
+              "memcpy_ns": 2486.36,
+              "cand_ns": 2392.55,
+              "ratio": 0.9623,
+              "p_mwu": 0.4553
+            },
+            "h8/p64": {
+              "memcpy_ns": 2.15,
+              "cand_ns": 2.15,
+              "ratio": 1.0001,
+              "p_mwu": 0.83571
+            },
+            "h8/p128": {
+              "memcpy_ns": 3.81,
+              "cand_ns": 3.82,
+              "ratio": 1.0008,
+              "p_mwu": 0.86823
+            },
+            "h8/p256": {
+              "memcpy_ns": 6.92,
+              "cand_ns": 6.97,
+              "ratio": 1.0074,
+              "p_mwu": 0.6783
+            },
+            "h8/p512": {
+              "memcpy_ns": 10.93,
+              "cand_ns": 10.49,
+              "ratio": 0.9599,
+              "p_mwu": 0.03102
+            },
+            "h8/p1024": {
+              "memcpy_ns": 15.59,
+              "cand_ns": 15.55,
+              "ratio": 0.998,
+              "p_mwu": 0.74002
+            },
+            "h8/p4096": {
+              "memcpy_ns": 60.89,
+              "cand_ns": 60.64,
+              "ratio": 0.9958,
+              "p_mwu": 0.86823
+            },
+            "h8/p32768": {
+              "memcpy_ns": 1180.93,
+              "cand_ns": 1178.61,
+              "ratio": 0.998,
+              "p_mwu": 0.6482
+            },
+            "h8/p65536": {
+              "memcpy_ns": 2442.04,
+              "cand_ns": 2356.52,
+              "ratio": 0.965,
+              "p_mwu": 0.12486
+            }
+          }
+        },
+        "provenance": {
+          "artifact_digest": "ffa0b13d203aec1a3cf013cd93a5370bf015c10e9b79357a528af074a5dd9a9c",
+          "evaluator": [
+            "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+          ],
+          "measured_at": 1795685342.5380342
+        }
+      },
+      "decision": {
+        "action": "select",
+        "relation": "better",
+        "feasibility": "pass",
+        "reason": "First feasible reference"
+      }
+    },
+    {
+      "id": "candidate-001",
+      "parent": "baseline",
+      "workspace": "/home/modernovo/labs/memcp-bench/.loop_exp/run_hybrid/candidates/candidate-001/workspace",
+      "artifact": "/home/modernovo/labs/memcp-bench/.loop_exp/run_hybrid/candidates/candidate-001/artifact",
+      "context": {
+        "parent_id": "baseline",
+        "parent_digest": "ffa0b13d203aec1a3cf013cd93a5370bf015c10e9b79357a528af074a5dd9a9c",
+        "parent_evaluation": {
+          "status": "complete",
+          "metrics": {
+            "geomean_ratio": 0.9957,
+            "sig_wins": 1
+          },
+          "checks": {
+            "tests": "pass"
+          },
+          "diagnostics": {
+            "best_ratio": 0.9599,
+            "worst_ratio": 1.0386,
+            "cases": {
+              "h16/p64": {
+                "memcpy_ns": 8.45,
+                "cand_ns": 8.47,
+                "ratio": 1.0021,
+                "p_mwu": 0.6783
+              },
+              "h16/p128": {
+                "memcpy_ns": 10.05,
+                "cand_ns": 10.36,
+                "ratio": 1.0305,
+                "p_mwu": 0.53383
+              },
+              "h16/p256": {
+                "memcpy_ns": 13.42,
+                "cand_ns": 13.28,
+                "ratio": 0.9897,
+                "p_mwu": 0.58974
+              },
+              "h16/p512": {
+                "memcpy_ns": 14.18,
+                "cand_ns": 14.73,
+                "ratio": 1.0386,
+                "p_mwu": 0.24549
+              },
+              "h16/p1024": {
+                "memcpy_ns": 22.28,
+                "cand_ns": 22.07,
+                "ratio": 0.9906,
+                "p_mwu": 0.86823
+              },
+              "h16/p4096": {
+                "memcpy_ns": 64.23,
+                "cand_ns": 63.98,
+                "ratio": 0.9961,
+                "p_mwu": 0.50691
+              },
+              "h16/p32768": {
+                "memcpy_ns": 1213.69,
+                "cand_ns": 1213.99,
+                "ratio": 1.0003,
+                "p_mwu": 1.0
+              },
+              "h16/p65536": {
+                "memcpy_ns": 2486.36,
+                "cand_ns": 2392.55,
+                "ratio": 0.9623,
+                "p_mwu": 0.4553
+              },
+              "h8/p64": {
+                "memcpy_ns": 2.15,
+                "cand_ns": 2.15,
+                "ratio": 1.0001,
+                "p_mwu": 0.83571
+              },
+              "h8/p128": {
+                "memcpy_ns": 3.81,
+                "cand_ns": 3.82,
+                "ratio": 1.0008,
+                "p_mwu": 0.86823
+              },
+              "h8/p256": {
+                "memcpy_ns": 6.92,
+                "cand_ns": 6.97,
+                "ratio": 1.0074,
+                "p_mwu": 0.6783
+              },
+              "h8/p512": {
+                "memcpy_ns": 10.93,
+                "cand_ns": 10.49,
+                "ratio": 0.9599,
+                "p_mwu": 0.03102
+              },
+              "h8/p1024": {
+                "memcpy_ns": 15.59,
+                "cand_ns": 15.55,
+                "ratio": 0.998,
+                "p_mwu": 0.74002
+              },
+              "h8/p4096": {
+                "memcpy_ns": 60.89,
+                "cand_ns": 60.64,
+                "ratio": 0.9958,
+                "p_mwu": 0.86823
+              },
+              "h8/p32768": {
+                "memcpy_ns": 1180.93,
+                "cand_ns": 1178.61,
+                "ratio": 0.998,
+                "p_mwu": 0.6482
+              },
+              "h8/p65536": {
+                "memcpy_ns": 2442.04,
+                "cand_ns": 2356.52,
+                "ratio": 0.965,
+                "p_mwu": 0.12486
+              }
+            }
+          },
+          "provenance": {
+            "artifact_digest": "ffa0b13d203aec1a3cf013cd93a5370bf015c10e9b79357a528af074a5dd9a9c",
+            "evaluator": [
+              "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+              "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+            ],
+            "measured_at": 1795685342.5380342
+          }
+        },
+        "task": {
+          "name": "Hybrid 2-Method Scenario Speedup",
+          "source": "./source_hybrid",
+          "description": "Combine unaligned 4x AVX2 (small) and 32B-aligned 8x AVX2 temporal (L1/L2) and iteratively optimize.",
+          "evaluator": [
+            "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+          ],
+          "policy": "pareto",
+          "objectives": [
+            {
+              "metric": "geomean_ratio",
+              "type": "number",
+              "direction": "minimize",
+              "minimum_gain": 0.01
+            },
+            {
+              "metric": "sig_wins",
+              "type": "number",
+              "direction": "maximize",
+              "minimum_gain": 1
+            }
+          ],
+          "constraints": [
+            {
+              "check": "tests",
+              "required": "pass"
+            }
+          ],
+          "budget": {
+            "max_candidates": 8,
+            "max_elapsed_seconds": 1800
+          }
+        },
+        "introduction": {},
+        "history": [
+          {
+            "id": "baseline",
+            "hypothesis": "Baseline",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "First feasible reference"
+            }
+          }
+        ],
+        "remaining_candidates": 8
+      },
+      "hypothesis": "Hybrid v1: combine proven branchless unaligned AVX2 (128..256B) + 32B-aligned 8x AVX2 temporal (32K..64K) + std::memcpy fallback",
+      "summary": "Implemented 2-method HybridScenario combining small unaligned AVX2 and L1/L2 aligned 8x AVX2",
+      "digest": "849cf09e9a047b0da8c4189739b677870141be412ddbf9245042adabbd3f88d2",
+      "evaluation": {
+        "status": "complete",
+        "metrics": {
+          "geomean_ratio": 0.9196,
+          "sig_wins": 8
+        },
+        "checks": {
+          "tests": "pass"
+        },
+        "diagnostics": {
+          "best_ratio": 0.6683,
+          "worst_ratio": 1.0164,
+          "cases": {
+            "h16/p64": {
+              "memcpy_ns": 8.43,
+              "cand_ns": 8.43,
+              "ratio": 1.0,
+              "p_mwu": 0.6783
+            },
+            "h16/p128": {
+              "memcpy_ns": 10.04,
+              "cand_ns": 8.84,
+              "ratio": 0.8805,
+              "p_mwu": 0.0
+            },
+            "h16/p256": {
+              "memcpy_ns": 13.25,
+              "cand_ns": 10.44,
+              "ratio": 0.7878,
+              "p_mwu": 0.0
+            },
+            "h16/p512": {
+              "memcpy_ns": 14.11,
+              "cand_ns": 14.1,
+              "ratio": 0.9994,
+              "p_mwu": 0.96691
+            },
+            "h16/p1024": {
+              "memcpy_ns": 21.72,
+              "cand_ns": 22.07,
+              "ratio": 1.0164,
+              "p_mwu": 0.53383
+            },
+            "h16/p4096": {
+              "memcpy_ns": 60.63,
+              "cand_ns": 60.32,
+              "ratio": 0.9949,
+              "p_mwu": 0.19851
+            },
+            "h16/p32768": {
+              "memcpy_ns": 1174.54,
+              "cand_ns": 1034.65,
+              "ratio": 0.8809,
+              "p_mwu": 0.0
+            },
+            "h16/p65536": {
+              "memcpy_ns": 2362.11,
+              "cand_ns": 2196.46,
+              "ratio": 0.9299,
+              "p_mwu": 6e-05
+            },
+            "h8/p64": {
+              "memcpy_ns": 2.15,
+              "cand_ns": 2.14,
+              "ratio": 0.9996,
+              "p_mwu": 0.19851
+            },
+            "h8/p128": {
+              "memcpy_ns": 3.81,
+              "cand_ns": 3.21,
+              "ratio": 0.8429,
+              "p_mwu": 0.0
+            },
+            "h8/p256": {
+              "memcpy_ns": 6.86,
+              "cand_ns": 4.58,
+              "ratio": 0.6683,
+              "p_mwu": 0.0
+            },
+            "h8/p512": {
+              "memcpy_ns": 9.77,
+              "cand_ns": 9.77,
+              "ratio": 1.0003,
+              "p_mwu": 1.0
+            },
+            "h8/p1024": {
+              "memcpy_ns": 14.59,
+              "cand_ns": 14.6,
+              "ratio": 1.0004,
+              "p_mwu": 0.31951
+            },
+            "h8/p4096": {
+              "memcpy_ns": 54.8,
+              "cand_ns": 53.97,
+              "ratio": 0.9849,
+              "p_mwu": 0.09709
+            },
+            "h8/p32768": {
+              "memcpy_ns": 1163.55,
+              "cand_ns": 1023.25,
+              "ratio": 0.8794,
+              "p_mwu": 6e-05
+            },
+            "h8/p65536": {
+              "memcpy_ns": 2343.83,
+              "cand_ns": 2187.23,
+              "ratio": 0.9332,
+              "p_mwu": 0.0
+            }
+          }
+        },
+        "provenance": {
+          "artifact_digest": "849cf09e9a047b0da8c4189739b677870141be412ddbf9245042adabbd3f88d2",
+          "evaluator": [
+            "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+          ],
+          "measured_at": 1795685429.8956947
+        }
+      },
+      "decision": {
+        "action": "select",
+        "relation": "better",
+        "feasibility": "pass",
+        "reason": "pareto comparison: better"
+      }
+    },
+    {
+      "id": "candidate-002",
+      "parent": "candidate-001",
+      "workspace": "/home/modernovo/labs/memcp-bench/.loop_exp/run_hybrid/candidates/candidate-002/workspace",
+      "artifact": "/home/modernovo/labs/memcp-bench/.loop_exp/run_hybrid/candidates/candidate-002/artifact",
+      "context": {
+        "parent_id": "candidate-001",
+        "parent_digest": "849cf09e9a047b0da8c4189739b677870141be412ddbf9245042adabbd3f88d2",
+        "parent_evaluation": {
+          "status": "complete",
+          "metrics": {
+            "geomean_ratio": 0.9196,
+            "sig_wins": 8
+          },
+          "checks": {
+            "tests": "pass"
+          },
+          "diagnostics": {
+            "best_ratio": 0.6683,
+            "worst_ratio": 1.0164,
+            "cases": {
+              "h16/p64": {
+                "memcpy_ns": 8.43,
+                "cand_ns": 8.43,
+                "ratio": 1.0,
+                "p_mwu": 0.6783
+              },
+              "h16/p128": {
+                "memcpy_ns": 10.04,
+                "cand_ns": 8.84,
+                "ratio": 0.8805,
+                "p_mwu": 0.0
+              },
+              "h16/p256": {
+                "memcpy_ns": 13.25,
+                "cand_ns": 10.44,
+                "ratio": 0.7878,
+                "p_mwu": 0.0
+              },
+              "h16/p512": {
+                "memcpy_ns": 14.11,
+                "cand_ns": 14.1,
+                "ratio": 0.9994,
+                "p_mwu": 0.96691
+              },
+              "h16/p1024": {
+                "memcpy_ns": 21.72,
+                "cand_ns": 22.07,
+                "ratio": 1.0164,
+                "p_mwu": 0.53383
+              },
+              "h16/p4096": {
+                "memcpy_ns": 60.63,
+                "cand_ns": 60.32,
+                "ratio": 0.9949,
+                "p_mwu": 0.19851
+              },
+              "h16/p32768": {
+                "memcpy_ns": 1174.54,
+                "cand_ns": 1034.65,
+                "ratio": 0.8809,
+                "p_mwu": 0.0
+              },
+              "h16/p65536": {
+                "memcpy_ns": 2362.11,
+                "cand_ns": 2196.46,
+                "ratio": 0.9299,
+                "p_mwu": 6e-05
+              },
+              "h8/p64": {
+                "memcpy_ns": 2.15,
+                "cand_ns": 2.14,
+                "ratio": 0.9996,
+                "p_mwu": 0.19851
+              },
+              "h8/p128": {
+                "memcpy_ns": 3.81,
+                "cand_ns": 3.21,
+                "ratio": 0.8429,
+                "p_mwu": 0.0
+              },
+              "h8/p256": {
+                "memcpy_ns": 6.86,
+                "cand_ns": 4.58,
+                "ratio": 0.6683,
+                "p_mwu": 0.0
+              },
+              "h8/p512": {
+                "memcpy_ns": 9.77,
+                "cand_ns": 9.77,
+                "ratio": 1.0003,
+                "p_mwu": 1.0
+              },
+              "h8/p1024": {
+                "memcpy_ns": 14.59,
+                "cand_ns": 14.6,
+                "ratio": 1.0004,
+                "p_mwu": 0.31951
+              },
+              "h8/p4096": {
+                "memcpy_ns": 54.8,
+                "cand_ns": 53.97,
+                "ratio": 0.9849,
+                "p_mwu": 0.09709
+              },
+              "h8/p32768": {
+                "memcpy_ns": 1163.55,
+                "cand_ns": 1023.25,
+                "ratio": 0.8794,
+                "p_mwu": 6e-05
+              },
+              "h8/p65536": {
+                "memcpy_ns": 2343.83,
+                "cand_ns": 2187.23,
+                "ratio": 0.9332,
+                "p_mwu": 0.0
+              }
+            }
+          },
+          "provenance": {
+            "artifact_digest": "849cf09e9a047b0da8c4189739b677870141be412ddbf9245042adabbd3f88d2",
+            "evaluator": [
+              "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+              "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+            ],
+            "measured_at": 1795685429.8956947
+          }
+        },
+        "task": {
+          "name": "Hybrid 2-Method Scenario Speedup",
+          "source": "./source_hybrid",
+          "description": "Combine unaligned 4x AVX2 (small) and 32B-aligned 8x AVX2 temporal (L1/L2) and iteratively optimize.",
+          "evaluator": [
+            "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+          ],
+          "policy": "pareto",
+          "objectives": [
+            {
+              "metric": "geomean_ratio",
+              "type": "number",
+              "direction": "minimize",
+              "minimum_gain": 0.01
+            },
+            {
+              "metric": "sig_wins",
+              "type": "number",
+              "direction": "maximize",
+              "minimum_gain": 1
+            }
+          ],
+          "constraints": [
+            {
+              "check": "tests",
+              "required": "pass"
+            }
+          ],
+          "budget": {
+            "max_candidates": 8,
+            "max_elapsed_seconds": 1800
+          }
+        },
+        "introduction": {},
+        "history": [
+          {
+            "id": "baseline",
+            "hypothesis": "Baseline",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "First feasible reference"
+            }
+          },
+          {
+            "id": "candidate-001",
+            "hypothesis": "Hybrid v1: combine proven branchless unaligned AVX2 (128..256B) + 32B-aligned 8x AVX2 temporal (32K..64K) + std::memcpy fallback",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "pareto comparison: better"
+            }
+          }
+        ],
+        "remaining_candidates": 7
+      },
+      "hypothesis": "Add branchless 512B unroll (2x256B) to Method 1 and _MM_HINT_T0 prefetch (512B) to Method 2 (32K..64K)",
+      "summary": "Extended Method 1 to branchless 512B and added T0 prefetch to Method 2",
+      "digest": "861f8eaea0fd8408803462166289d3dd8aeb963d0010639fef03cbd249fda796",
+      "evaluation": {
+        "status": "complete",
+        "metrics": {
+          "geomean_ratio": 0.9147,
+          "sig_wins": 8
+        },
+        "checks": {
+          "tests": "pass"
+        },
+        "diagnostics": {
+          "best_ratio": 0.6619,
+          "worst_ratio": 1.0014,
+          "cases": {
+            "h16/p64": {
+              "memcpy_ns": 8.43,
+              "cand_ns": 8.43,
+              "ratio": 1.0005,
+              "p_mwu": 0.17107
+            },
+            "h16/p128": {
+              "memcpy_ns": 10.03,
+              "cand_ns": 8.83,
+              "ratio": 0.88,
+              "p_mwu": 0.0
+            },
+            "h16/p256": {
+              "memcpy_ns": 13.24,
+              "cand_ns": 10.43,
+              "ratio": 0.7877,
+              "p_mwu": 0.0
+            },
+            "h16/p512": {
+              "memcpy_ns": 18.57,
+              "cand_ns": 18.2,
+              "ratio": 0.9799,
+              "p_mwu": 0.0
+            },
+            "h16/p1024": {
+              "memcpy_ns": 21.28,
+              "cand_ns": 21.31,
+              "ratio": 1.0014,
+              "p_mwu": 0.40679
+            },
+            "h16/p4096": {
+              "memcpy_ns": 60.6,
+              "cand_ns": 60.69,
+              "ratio": 1.0014,
+              "p_mwu": 0.86823
+            },
+            "h16/p32768": {
+              "memcpy_ns": 1169.37,
+              "cand_ns": 1020.56,
+              "ratio": 0.8727,
+              "p_mwu": 0.00049
+            },
+            "h16/p65536": {
+              "memcpy_ns": 2346.22,
+              "cand_ns": 2102.67,
+              "ratio": 0.8962,
+              "p_mwu": 1e-05
+            },
+            "h8/p64": {
+              "memcpy_ns": 2.15,
+              "cand_ns": 2.15,
+              "ratio": 1.0003,
+              "p_mwu": 0.22903
+            },
+            "h8/p128": {
+              "memcpy_ns": 3.8,
+              "cand_ns": 3.21,
+              "ratio": 0.8448,
+              "p_mwu": 0.0
+            },
+            "h8/p256": {
+              "memcpy_ns": 6.92,
+              "cand_ns": 4.58,
+              "ratio": 0.6619,
+              "p_mwu": 0.0
+            },
+            "h8/p512": {
+              "memcpy_ns": 9.41,
+              "cand_ns": 9.09,
+              "ratio": 0.9655,
+              "p_mwu": 0.00022
+            },
+            "h8/p1024": {
+              "memcpy_ns": 18.68,
+              "cand_ns": 18.67,
+              "ratio": 0.9996,
+              "p_mwu": 0.17107
+            },
+            "h8/p4096": {
+              "memcpy_ns": 57.13,
+              "cand_ns": 57.13,
+              "ratio": 1.0,
+              "p_mwu": 0.80346
+            },
+            "h8/p32768": {
+              "memcpy_ns": 1155.8,
+              "cand_ns": 1018.86,
+              "ratio": 0.8815,
+              "p_mwu": 4e-05
+            },
+            "h8/p65536": {
+              "memcpy_ns": 2336.58,
+              "cand_ns": 2212.46,
+              "ratio": 0.9469,
+              "p_mwu": 0.0
+            }
+          }
+        },
+        "provenance": {
+          "artifact_digest": "861f8eaea0fd8408803462166289d3dd8aeb963d0010639fef03cbd249fda796",
+          "evaluator": [
+            "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+          ],
+          "measured_at": 1795685528.986803
+        }
+      },
+      "decision": {
+        "action": "reject",
+        "relation": "equivalent",
+        "feasibility": "pass",
+        "reason": "pareto comparison: equivalent"
+      }
+    },
+    {
+      "id": "candidate-003",
+      "parent": "candidate-001",
+      "workspace": "/home/modernovo/labs/memcp-bench/.loop_exp/run_hybrid/candidates/candidate-003/workspace",
+      "artifact": "/home/modernovo/labs/memcp-bench/.loop_exp/run_hybrid/candidates/candidate-003/artifact",
+      "context": {
+        "parent_id": "candidate-001",
+        "parent_digest": "849cf09e9a047b0da8c4189739b677870141be412ddbf9245042adabbd3f88d2",
+        "parent_evaluation": {
+          "status": "complete",
+          "metrics": {
+            "geomean_ratio": 0.9196,
+            "sig_wins": 8
+          },
+          "checks": {
+            "tests": "pass"
+          },
+          "diagnostics": {
+            "best_ratio": 0.6683,
+            "worst_ratio": 1.0164,
+            "cases": {
+              "h16/p64": {
+                "memcpy_ns": 8.43,
+                "cand_ns": 8.43,
+                "ratio": 1.0,
+                "p_mwu": 0.6783
+              },
+              "h16/p128": {
+                "memcpy_ns": 10.04,
+                "cand_ns": 8.84,
+                "ratio": 0.8805,
+                "p_mwu": 0.0
+              },
+              "h16/p256": {
+                "memcpy_ns": 13.25,
+                "cand_ns": 10.44,
+                "ratio": 0.7878,
+                "p_mwu": 0.0
+              },
+              "h16/p512": {
+                "memcpy_ns": 14.11,
+                "cand_ns": 14.1,
+                "ratio": 0.9994,
+                "p_mwu": 0.96691
+              },
+              "h16/p1024": {
+                "memcpy_ns": 21.72,
+                "cand_ns": 22.07,
+                "ratio": 1.0164,
+                "p_mwu": 0.53383
+              },
+              "h16/p4096": {
+                "memcpy_ns": 60.63,
+                "cand_ns": 60.32,
+                "ratio": 0.9949,
+                "p_mwu": 0.19851
+              },
+              "h16/p32768": {
+                "memcpy_ns": 1174.54,
+                "cand_ns": 1034.65,
+                "ratio": 0.8809,
+                "p_mwu": 0.0
+              },
+              "h16/p65536": {
+                "memcpy_ns": 2362.11,
+                "cand_ns": 2196.46,
+                "ratio": 0.9299,
+                "p_mwu": 6e-05
+              },
+              "h8/p64": {
+                "memcpy_ns": 2.15,
+                "cand_ns": 2.14,
+                "ratio": 0.9996,
+                "p_mwu": 0.19851
+              },
+              "h8/p128": {
+                "memcpy_ns": 3.81,
+                "cand_ns": 3.21,
+                "ratio": 0.8429,
+                "p_mwu": 0.0
+              },
+              "h8/p256": {
+                "memcpy_ns": 6.86,
+                "cand_ns": 4.58,
+                "ratio": 0.6683,
+                "p_mwu": 0.0
+              },
+              "h8/p512": {
+                "memcpy_ns": 9.77,
+                "cand_ns": 9.77,
+                "ratio": 1.0003,
+                "p_mwu": 1.0
+              },
+              "h8/p1024": {
+                "memcpy_ns": 14.59,
+                "cand_ns": 14.6,
+                "ratio": 1.0004,
+                "p_mwu": 0.31951
+              },
+              "h8/p4096": {
+                "memcpy_ns": 54.8,
+                "cand_ns": 53.97,
+                "ratio": 0.9849,
+                "p_mwu": 0.09709
+              },
+              "h8/p32768": {
+                "memcpy_ns": 1163.55,
+                "cand_ns": 1023.25,
+                "ratio": 0.8794,
+                "p_mwu": 6e-05
+              },
+              "h8/p65536": {
+                "memcpy_ns": 2343.83,
+                "cand_ns": 2187.23,
+                "ratio": 0.9332,
+                "p_mwu": 0.0
+              }
+            }
+          },
+          "provenance": {
+            "artifact_digest": "849cf09e9a047b0da8c4189739b677870141be412ddbf9245042adabbd3f88d2",
+            "evaluator": [
+              "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+              "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+            ],
+            "measured_at": 1795685429.8956947
+          }
+        },
+        "task": {
+          "name": "Hybrid 2-Method Scenario Speedup",
+          "source": "./source_hybrid",
+          "description": "Combine unaligned 4x AVX2 (small) and 32B-aligned 8x AVX2 temporal (L1/L2) and iteratively optimize.",
+          "evaluator": [
+            "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+          ],
+          "policy": "pareto",
+          "objectives": [
+            {
+              "metric": "geomean_ratio",
+              "type": "number",
+              "direction": "minimize",
+              "minimum_gain": 0.01
+            },
+            {
+              "metric": "sig_wins",
+              "type": "number",
+              "direction": "maximize",
+              "minimum_gain": 1
+            }
+          ],
+          "constraints": [
+            {
+              "check": "tests",
+              "required": "pass"
+            }
+          ],
+          "budget": {
+            "max_candidates": 8,
+            "max_elapsed_seconds": 1800
+          }
+        },
+        "introduction": {},
+        "history": [
+          {
+            "id": "baseline",
+            "hypothesis": "Baseline",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "First feasible reference"
+            }
+          },
+          {
+            "id": "candidate-001",
+            "hypothesis": "Hybrid v1: combine proven branchless unaligned AVX2 (128..256B) + 32B-aligned 8x AVX2 temporal (32K..64K) + std::memcpy fallback",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "pareto comparison: better"
+            }
+          },
+          {
+            "id": "candidate-002",
+            "hypothesis": "Add branchless 512B unroll (2x256B) to Method 1 and _MM_HINT_T0 prefetch (512B) to Method 2 (32K..64K)",
+            "decision": {
+              "action": "reject",
+              "relation": "equivalent",
+              "feasibility": "pass",
+              "reason": "pareto comparison: equivalent"
+            }
+          }
+        ],
+        "remaining_candidates": 6
+      },
+      "hypothesis": "Extend Method 1 branchless unroll to 1024B (4x256B) and increase Method 2 T0 prefetch distance to 1024B",
+      "summary": "Added branchless 1024B unroll to Method 1 and kDist=1024 T0 prefetch to Method 2",
+      "digest": "05df79c7cf9636ecb7d1c92af80fc4104820b92a2a9b43e2262e88fff7cf5b85",
+      "evaluation": {
+        "status": "complete",
+        "metrics": {
+          "geomean_ratio": 0.9457,
+          "sig_wins": 7
+        },
+        "checks": {
+          "tests": "pass"
+        },
+        "diagnostics": {
+          "best_ratio": 0.663,
+          "worst_ratio": 1.2676,
+          "cases": {
+            "h16/p64": {
+              "memcpy_ns": 8.45,
+              "cand_ns": 8.46,
+              "ratio": 1.0007,
+              "p_mwu": 0.6783
+            },
+            "h16/p128": {
+              "memcpy_ns": 10.05,
+              "cand_ns": 8.86,
+              "ratio": 0.8819,
+              "p_mwu": 0.0
+            },
+            "h16/p256": {
+              "memcpy_ns": 13.3,
+              "cand_ns": 10.47,
+              "ratio": 0.7872,
+              "p_mwu": 0.0
+            },
+            "h16/p512": {
+              "memcpy_ns": 14.11,
+              "cand_ns": 13.7,
+              "ratio": 0.9707,
+              "p_mwu": 0.0
+            },
+            "h16/p1024": {
+              "memcpy_ns": 22.1,
+              "cand_ns": 26.61,
+              "ratio": 1.2041,
+              "p_mwu": 0.0
+            },
+            "h16/p4096": {
+              "memcpy_ns": 60.08,
+              "cand_ns": 60.96,
+              "ratio": 1.0147,
+              "p_mwu": 0.06197
+            },
+            "h16/p32768": {
+              "memcpy_ns": 1175.04,
+              "cand_ns": 1051.7,
+              "ratio": 0.895,
+              "p_mwu": 6e-05
+            },
+            "h16/p65536": {
+              "memcpy_ns": 2375.55,
+              "cand_ns": 2314.66,
+              "ratio": 0.9744,
+              "p_mwu": 0.02793
+            },
+            "h8/p64": {
+              "memcpy_ns": 2.14,
+              "cand_ns": 2.14,
+              "ratio": 0.9974,
+              "p_mwu": 0.04649
+            },
+            "h8/p128": {
+              "memcpy_ns": 3.8,
+              "cand_ns": 3.22,
+              "ratio": 0.8493,
+              "p_mwu": 0.0
+            },
+            "h8/p256": {
+              "memcpy_ns": 6.94,
+              "cand_ns": 4.6,
+              "ratio": 0.663,
+              "p_mwu": 0.0
+            },
+            "h8/p512": {
+              "memcpy_ns": 9.58,
+              "cand_ns": 8.82,
+              "ratio": 0.9206,
+              "p_mwu": 0.0
+            },
+            "h8/p1024": {
+              "memcpy_ns": 15.87,
+              "cand_ns": 20.12,
+              "ratio": 1.2676,
+              "p_mwu": 0.0
+            },
+            "h8/p4096": {
+              "memcpy_ns": 57.37,
+              "cand_ns": 57.5,
+              "ratio": 1.0024,
+              "p_mwu": 0.48073
+            },
+            "h8/p32768": {
+              "memcpy_ns": 1170.25,
+              "cand_ns": 1050.23,
+              "ratio": 0.8974,
+              "p_mwu": 4e-05
+            },
+            "h8/p65536": {
+              "memcpy_ns": 2381.76,
+              "cand_ns": 2300.67,
+              "ratio": 0.966,
+              "p_mwu": 0.00794
+            }
+          }
+        },
+        "provenance": {
+          "artifact_digest": "05df79c7cf9636ecb7d1c92af80fc4104820b92a2a9b43e2262e88fff7cf5b85",
+          "evaluator": [
+            "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+          ],
+          "measured_at": 1795685619.132804
+        }
+      },
+      "decision": {
+        "action": "reject",
+        "relation": "worse",
+        "feasibility": "pass",
+        "reason": "pareto comparison: worse"
+      }
+    },
+    {
+      "id": "candidate-004",
+      "parent": "candidate-001",
+      "workspace": "/home/modernovo/labs/memcp-bench/.loop_exp/run_hybrid/candidates/candidate-004/workspace",
+      "artifact": "/home/modernovo/labs/memcp-bench/.loop_exp/run_hybrid/candidates/candidate-004/artifact",
+      "context": {
+        "parent_id": "candidate-001",
+        "parent_digest": "849cf09e9a047b0da8c4189739b677870141be412ddbf9245042adabbd3f88d2",
+        "parent_evaluation": {
+          "status": "complete",
+          "metrics": {
+            "geomean_ratio": 0.9196,
+            "sig_wins": 8
+          },
+          "checks": {
+            "tests": "pass"
+          },
+          "diagnostics": {
+            "best_ratio": 0.6683,
+            "worst_ratio": 1.0164,
+            "cases": {
+              "h16/p64": {
+                "memcpy_ns": 8.43,
+                "cand_ns": 8.43,
+                "ratio": 1.0,
+                "p_mwu": 0.6783
+              },
+              "h16/p128": {
+                "memcpy_ns": 10.04,
+                "cand_ns": 8.84,
+                "ratio": 0.8805,
+                "p_mwu": 0.0
+              },
+              "h16/p256": {
+                "memcpy_ns": 13.25,
+                "cand_ns": 10.44,
+                "ratio": 0.7878,
+                "p_mwu": 0.0
+              },
+              "h16/p512": {
+                "memcpy_ns": 14.11,
+                "cand_ns": 14.1,
+                "ratio": 0.9994,
+                "p_mwu": 0.96691
+              },
+              "h16/p1024": {
+                "memcpy_ns": 21.72,
+                "cand_ns": 22.07,
+                "ratio": 1.0164,
+                "p_mwu": 0.53383
+              },
+              "h16/p4096": {
+                "memcpy_ns": 60.63,
+                "cand_ns": 60.32,
+                "ratio": 0.9949,
+                "p_mwu": 0.19851
+              },
+              "h16/p32768": {
+                "memcpy_ns": 1174.54,
+                "cand_ns": 1034.65,
+                "ratio": 0.8809,
+                "p_mwu": 0.0
+              },
+              "h16/p65536": {
+                "memcpy_ns": 2362.11,
+                "cand_ns": 2196.46,
+                "ratio": 0.9299,
+                "p_mwu": 6e-05
+              },
+              "h8/p64": {
+                "memcpy_ns": 2.15,
+                "cand_ns": 2.14,
+                "ratio": 0.9996,
+                "p_mwu": 0.19851
+              },
+              "h8/p128": {
+                "memcpy_ns": 3.81,
+                "cand_ns": 3.21,
+                "ratio": 0.8429,
+                "p_mwu": 0.0
+              },
+              "h8/p256": {
+                "memcpy_ns": 6.86,
+                "cand_ns": 4.58,
+                "ratio": 0.6683,
+                "p_mwu": 0.0
+              },
+              "h8/p512": {
+                "memcpy_ns": 9.77,
+                "cand_ns": 9.77,
+                "ratio": 1.0003,
+                "p_mwu": 1.0
+              },
+              "h8/p1024": {
+                "memcpy_ns": 14.59,
+                "cand_ns": 14.6,
+                "ratio": 1.0004,
+                "p_mwu": 0.31951
+              },
+              "h8/p4096": {
+                "memcpy_ns": 54.8,
+                "cand_ns": 53.97,
+                "ratio": 0.9849,
+                "p_mwu": 0.09709
+              },
+              "h8/p32768": {
+                "memcpy_ns": 1163.55,
+                "cand_ns": 1023.25,
+                "ratio": 0.8794,
+                "p_mwu": 6e-05
+              },
+              "h8/p65536": {
+                "memcpy_ns": 2343.83,
+                "cand_ns": 2187.23,
+                "ratio": 0.9332,
+                "p_mwu": 0.0
+              }
+            }
+          },
+          "provenance": {
+            "artifact_digest": "849cf09e9a047b0da8c4189739b677870141be412ddbf9245042adabbd3f88d2",
+            "evaluator": [
+              "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+              "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+            ],
+            "measured_at": 1795685429.8956947
+          }
+        },
+        "task": {
+          "name": "Hybrid 2-Method Scenario Speedup",
+          "source": "./source_hybrid",
+          "description": "Combine unaligned 4x AVX2 (small) and 32B-aligned 8x AVX2 temporal (L1/L2) and iteratively optimize.",
+          "evaluator": [
+            "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+          ],
+          "policy": "pareto",
+          "objectives": [
+            {
+              "metric": "geomean_ratio",
+              "type": "number",
+              "direction": "minimize",
+              "minimum_gain": 0.01
+            },
+            {
+              "metric": "sig_wins",
+              "type": "number",
+              "direction": "maximize",
+              "minimum_gain": 1
+            }
+          ],
+          "constraints": [
+            {
+              "check": "tests",
+              "required": "pass"
+            }
+          ],
+          "budget": {
+            "max_candidates": 8,
+            "max_elapsed_seconds": 1800
+          }
+        },
+        "introduction": {},
+        "history": [
+          {
+            "id": "baseline",
+            "hypothesis": "Baseline",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "First feasible reference"
+            }
+          },
+          {
+            "id": "candidate-001",
+            "hypothesis": "Hybrid v1: combine proven branchless unaligned AVX2 (128..256B) + 32B-aligned 8x AVX2 temporal (32K..64K) + std::memcpy fallback",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "pareto comparison: better"
+            }
+          },
+          {
+            "id": "candidate-002",
+            "hypothesis": "Add branchless 512B unroll (2x256B) to Method 1 and _MM_HINT_T0 prefetch (512B) to Method 2 (32K..64K)",
+            "decision": {
+              "action": "reject",
+              "relation": "equivalent",
+              "feasibility": "pass",
+              "reason": "pareto comparison: equivalent"
+            }
+          },
+          {
+            "id": "candidate-003",
+            "hypothesis": "Extend Method 1 branchless unroll to 1024B (4x256B) and increase Method 2 T0 prefetch distance to 1024B",
+            "decision": {
+              "action": "reject",
+              "relation": "worse",
+              "feasibility": "pass",
+              "reason": "pareto comparison: worse"
+            }
+          }
+        ],
+        "remaining_candidates": 5
+      },
+      "hypothesis": "Extend Method 1 branchless unroll down to 64B (2x AVX2) and tune Method 2 T0 prefetch distance to 256B",
+      "summary": "Added 64B 2x AVX2 branchless path and tuned Method 2 T0 prefetch to kDist=256",
+      "digest": "75978e2b893889636a56afe7bdbd610c8cfad4f672ee55939a11946fc63e81d9",
+      "evaluation": {
+        "status": "complete",
+        "metrics": {
+          "geomean_ratio": 0.9235,
+          "sig_wins": 8
+        },
+        "checks": {
+          "tests": "pass"
+        },
+        "diagnostics": {
+          "best_ratio": 0.7867,
+          "worst_ratio": 1.0307,
+          "cases": {
+            "h16/p64": {
+              "memcpy_ns": 8.46,
+              "cand_ns": 8.05,
+              "ratio": 0.9512,
+              "p_mwu": 0.0
+            },
+            "h16/p128": {
+              "memcpy_ns": 10.07,
+              "cand_ns": 8.88,
+              "ratio": 0.8815,
+              "p_mwu": 6e-05
+            },
+            "h16/p256": {
+              "memcpy_ns": 13.3,
+              "cand_ns": 10.47,
+              "ratio": 0.7867,
+              "p_mwu": 0.0
+            },
+            "h16/p512": {
+              "memcpy_ns": 14.14,
+              "cand_ns": 13.68,
+              "ratio": 0.9673,
+              "p_mwu": 0.0
+            },
+            "h16/p1024": {
+              "memcpy_ns": 22.0,
+              "cand_ns": 21.95,
+              "ratio": 0.9977,
+              "p_mwu": 0.86823
+            },
+            "h16/p4096": {
+              "memcpy_ns": 63.18,
+              "cand_ns": 61.65,
+              "ratio": 0.9758,
+              "p_mwu": 0.58974
+            },
+            "h16/p32768": {
+              "memcpy_ns": 1180.2,
+              "cand_ns": 1041.19,
+              "ratio": 0.8822,
+              "p_mwu": 6e-05
+            },
+            "h16/p65536": {
+              "memcpy_ns": 2383.38,
+              "cand_ns": 2154.66,
+              "ratio": 0.904,
+              "p_mwu": 0.00049
+            },
+            "h8/p64": {
+              "memcpy_ns": 2.15,
+              "cand_ns": 2.22,
+              "ratio": 1.0307,
+              "p_mwu": 0.00067
+            },
+            "h8/p128": {
+              "memcpy_ns": 3.81,
+              "cand_ns": 3.22,
+              "ratio": 0.846,
+              "p_mwu": 0.0
+            },
+            "h8/p256": {
+              "memcpy_ns": 6.92,
+              "cand_ns": 5.63,
+              "ratio": 0.8134,
+              "p_mwu": 0.0
+            },
+            "h8/p512": {
+              "memcpy_ns": 10.46,
+              "cand_ns": 10.09,
+              "ratio": 0.9652,
+              "p_mwu": 0.0
+            },
+            "h8/p1024": {
+              "memcpy_ns": 17.94,
+              "cand_ns": 18.03,
+              "ratio": 1.005,
+              "p_mwu": 0.05124
+            },
+            "h8/p4096": {
+              "memcpy_ns": 59.59,
+              "cand_ns": 58.42,
+              "ratio": 0.9803,
+              "p_mwu": 0.10574
+            },
+            "h8/p32768": {
+              "memcpy_ns": 1183.55,
+              "cand_ns": 1082.7,
+              "ratio": 0.9148,
+              "p_mwu": 0.0
+            },
+            "h8/p65536": {
+              "memcpy_ns": 2399.78,
+              "cand_ns": 2197.4,
+              "ratio": 0.9157,
+              "p_mwu": 0.08902
+            }
+          }
+        },
+        "provenance": {
+          "artifact_digest": "75978e2b893889636a56afe7bdbd610c8cfad4f672ee55939a11946fc63e81d9",
+          "evaluator": [
+            "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+          ],
+          "measured_at": 1795686109.8831608
+        }
+      },
+      "decision": {
+        "action": "reject",
+        "relation": "equivalent",
+        "feasibility": "pass",
+        "reason": "pareto comparison: equivalent"
+      }
+    },
+    {
+      "id": "candidate-005",
+      "parent": "candidate-001",
+      "workspace": "/home/modernovo/labs/memcp-bench/.loop_exp/run_hybrid/candidates/candidate-005/workspace",
+      "artifact": "/home/modernovo/labs/memcp-bench/.loop_exp/run_hybrid/candidates/candidate-005/artifact",
+      "context": {
+        "parent_id": "candidate-001",
+        "parent_digest": "849cf09e9a047b0da8c4189739b677870141be412ddbf9245042adabbd3f88d2",
+        "parent_evaluation": {
+          "status": "complete",
+          "metrics": {
+            "geomean_ratio": 0.9196,
+            "sig_wins": 8
+          },
+          "checks": {
+            "tests": "pass"
+          },
+          "diagnostics": {
+            "best_ratio": 0.6683,
+            "worst_ratio": 1.0164,
+            "cases": {
+              "h16/p64": {
+                "memcpy_ns": 8.43,
+                "cand_ns": 8.43,
+                "ratio": 1.0,
+                "p_mwu": 0.6783
+              },
+              "h16/p128": {
+                "memcpy_ns": 10.04,
+                "cand_ns": 8.84,
+                "ratio": 0.8805,
+                "p_mwu": 0.0
+              },
+              "h16/p256": {
+                "memcpy_ns": 13.25,
+                "cand_ns": 10.44,
+                "ratio": 0.7878,
+                "p_mwu": 0.0
+              },
+              "h16/p512": {
+                "memcpy_ns": 14.11,
+                "cand_ns": 14.1,
+                "ratio": 0.9994,
+                "p_mwu": 0.96691
+              },
+              "h16/p1024": {
+                "memcpy_ns": 21.72,
+                "cand_ns": 22.07,
+                "ratio": 1.0164,
+                "p_mwu": 0.53383
+              },
+              "h16/p4096": {
+                "memcpy_ns": 60.63,
+                "cand_ns": 60.32,
+                "ratio": 0.9949,
+                "p_mwu": 0.19851
+              },
+              "h16/p32768": {
+                "memcpy_ns": 1174.54,
+                "cand_ns": 1034.65,
+                "ratio": 0.8809,
+                "p_mwu": 0.0
+              },
+              "h16/p65536": {
+                "memcpy_ns": 2362.11,
+                "cand_ns": 2196.46,
+                "ratio": 0.9299,
+                "p_mwu": 6e-05
+              },
+              "h8/p64": {
+                "memcpy_ns": 2.15,
+                "cand_ns": 2.14,
+                "ratio": 0.9996,
+                "p_mwu": 0.19851
+              },
+              "h8/p128": {
+                "memcpy_ns": 3.81,
+                "cand_ns": 3.21,
+                "ratio": 0.8429,
+                "p_mwu": 0.0
+              },
+              "h8/p256": {
+                "memcpy_ns": 6.86,
+                "cand_ns": 4.58,
+                "ratio": 0.6683,
+                "p_mwu": 0.0
+              },
+              "h8/p512": {
+                "memcpy_ns": 9.77,
+                "cand_ns": 9.77,
+                "ratio": 1.0003,
+                "p_mwu": 1.0
+              },
+              "h8/p1024": {
+                "memcpy_ns": 14.59,
+                "cand_ns": 14.6,
+                "ratio": 1.0004,
+                "p_mwu": 0.31951
+              },
+              "h8/p4096": {
+                "memcpy_ns": 54.8,
+                "cand_ns": 53.97,
+                "ratio": 0.9849,
+                "p_mwu": 0.09709
+              },
+              "h8/p32768": {
+                "memcpy_ns": 1163.55,
+                "cand_ns": 1023.25,
+                "ratio": 0.8794,
+                "p_mwu": 6e-05
+              },
+              "h8/p65536": {
+                "memcpy_ns": 2343.83,
+                "cand_ns": 2187.23,
+                "ratio": 0.9332,
+                "p_mwu": 0.0
+              }
+            }
+          },
+          "provenance": {
+            "artifact_digest": "849cf09e9a047b0da8c4189739b677870141be412ddbf9245042adabbd3f88d2",
+            "evaluator": [
+              "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+              "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+            ],
+            "measured_at": 1795685429.8956947
+          }
+        },
+        "task": {
+          "name": "Hybrid 2-Method Scenario Speedup",
+          "source": "./source_hybrid",
+          "description": "Combine unaligned 4x AVX2 (small) and 32B-aligned 8x AVX2 temporal (L1/L2) and iteratively optimize.",
+          "evaluator": [
+            "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+          ],
+          "policy": "pareto",
+          "objectives": [
+            {
+              "metric": "geomean_ratio",
+              "type": "number",
+              "direction": "minimize",
+              "minimum_gain": 0.01
+            },
+            {
+              "metric": "sig_wins",
+              "type": "number",
+              "direction": "maximize",
+              "minimum_gain": 1
+            }
+          ],
+          "constraints": [
+            {
+              "check": "tests",
+              "required": "pass"
+            }
+          ],
+          "budget": {
+            "max_candidates": 8,
+            "max_elapsed_seconds": 1800
+          }
+        },
+        "introduction": {},
+        "history": [
+          {
+            "id": "baseline",
+            "hypothesis": "Baseline",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "First feasible reference"
+            }
+          },
+          {
+            "id": "candidate-001",
+            "hypothesis": "Hybrid v1: combine proven branchless unaligned AVX2 (128..256B) + 32B-aligned 8x AVX2 temporal (32K..64K) + std::memcpy fallback",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "pareto comparison: better"
+            }
+          },
+          {
+            "id": "candidate-002",
+            "hypothesis": "Add branchless 512B unroll (2x256B) to Method 1 and _MM_HINT_T0 prefetch (512B) to Method 2 (32K..64K)",
+            "decision": {
+              "action": "reject",
+              "relation": "equivalent",
+              "feasibility": "pass",
+              "reason": "pareto comparison: equivalent"
+            }
+          },
+          {
+            "id": "candidate-003",
+            "hypothesis": "Extend Method 1 branchless unroll to 1024B (4x256B) and increase Method 2 T0 prefetch distance to 1024B",
+            "decision": {
+              "action": "reject",
+              "relation": "worse",
+              "feasibility": "pass",
+              "reason": "pareto comparison: worse"
+            }
+          },
+          {
+            "id": "candidate-004",
+            "hypothesis": "Extend Method 1 branchless unroll down to 64B (2x AVX2) and tune Method 2 T0 prefetch distance to 256B",
+            "decision": {
+              "action": "reject",
+              "relation": "equivalent",
+              "feasibility": "pass",
+              "reason": "pareto comparison: equivalent"
+            }
+          }
+        ],
+        "remaining_candidates": 4
+      },
+      "hypothesis": "Use _MM_HINT_T1 (L2 prefetch, 512B ahead) instead of _MM_HINT_T0 in Method 2 to avoid L1d eviction at 32K..64K",
+      "summary": "Switched Method 2 prefetch hint from T0 to T1 (L2) and prioritized 256B branch in Method 1",
+      "digest": "5bde1383c20689464894099f7bfe750852b5beb31470340c043c01008873c7ee",
+      "evaluation": {
+        "status": "complete",
+        "metrics": {
+          "geomean_ratio": 0.9552,
+          "sig_wins": 5
+        },
+        "checks": {
+          "tests": "pass"
+        },
+        "diagnostics": {
+          "best_ratio": 0.7888,
+          "worst_ratio": 1.0577,
+          "cases": {
+            "h16/p64": {
+              "memcpy_ns": 8.55,
+              "cand_ns": 8.47,
+              "ratio": 0.991,
+              "p_mwu": 0.11499
+            },
+            "h16/p128": {
+              "memcpy_ns": 10.08,
+              "cand_ns": 8.89,
+              "ratio": 0.8821,
+              "p_mwu": 6e-05
+            },
+            "h16/p256": {
+              "memcpy_ns": 13.29,
+              "cand_ns": 10.48,
+              "ratio": 0.7888,
+              "p_mwu": 0.0
+            },
+            "h16/p512": {
+              "memcpy_ns": 14.41,
+              "cand_ns": 13.79,
+              "ratio": 0.9576,
+              "p_mwu": 0.00067
+            },
+            "h16/p1024": {
+              "memcpy_ns": 22.15,
+              "cand_ns": 22.18,
+              "ratio": 1.0014,
+              "p_mwu": 0.77155
+            },
+            "h16/p4096": {
+              "memcpy_ns": 60.99,
+              "cand_ns": 64.51,
+              "ratio": 1.0577,
+              "p_mwu": 0.05124
+            },
+            "h16/p32768": {
+              "memcpy_ns": 1197.26,
+              "cand_ns": 1194.21,
+              "ratio": 0.9975,
+              "p_mwu": 0.90097
+            },
+            "h16/p65536": {
+              "memcpy_ns": 2370.72,
+              "cand_ns": 2436.27,
+              "ratio": 1.0276,
+              "p_mwu": 0.0344
+            },
+            "h8/p64": {
+              "memcpy_ns": 2.14,
+              "cand_ns": 2.13,
+              "ratio": 0.9956,
+              "p_mwu": 0.40679
+            },
+            "h8/p128": {
+              "memcpy_ns": 3.81,
+              "cand_ns": 3.24,
+              "ratio": 0.851,
+              "p_mwu": 0.0
+            },
+            "h8/p256": {
+              "memcpy_ns": 6.94,
+              "cand_ns": 5.66,
+              "ratio": 0.8154,
+              "p_mwu": 0.0
+            },
+            "h8/p512": {
+              "memcpy_ns": 10.49,
+              "cand_ns": 10.1,
+              "ratio": 0.963,
+              "p_mwu": 6e-05
+            },
+            "h8/p1024": {
+              "memcpy_ns": 15.37,
+              "cand_ns": 15.66,
+              "ratio": 1.0189,
+              "p_mwu": 0.34009
+            },
+            "h8/p4096": {
+              "memcpy_ns": 59.39,
+              "cand_ns": 58.4,
+              "ratio": 0.9833,
+              "p_mwu": 0.08902
+            },
+            "h8/p32768": {
+              "memcpy_ns": 1181.64,
+              "cand_ns": 1179.23,
+              "ratio": 0.998,
+              "p_mwu": 0.31951
+            },
+            "h8/p65536": {
+              "memcpy_ns": 2372.62,
+              "cand_ns": 2389.86,
+              "ratio": 1.0073,
+              "p_mwu": 0.3615
+            }
+          }
+        },
+        "provenance": {
+          "artifact_digest": "5bde1383c20689464894099f7bfe750852b5beb31470340c043c01008873c7ee",
+          "evaluator": [
+            "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+          ],
+          "measured_at": 1795686279.5674334
+        }
+      },
+      "decision": {
+        "action": "reject",
+        "relation": "worse",
+        "feasibility": "pass",
+        "reason": "pareto comparison: worse"
+      }
+    },
+    {
+      "id": "candidate-006",
+      "parent": "candidate-001",
+      "workspace": "/home/modernovo/labs/memcp-bench/.loop_exp/run_hybrid/candidates/candidate-006/workspace",
+      "artifact": "/home/modernovo/labs/memcp-bench/.loop_exp/run_hybrid/candidates/candidate-006/artifact",
+      "context": {
+        "parent_id": "candidate-001",
+        "parent_digest": "849cf09e9a047b0da8c4189739b677870141be412ddbf9245042adabbd3f88d2",
+        "parent_evaluation": {
+          "status": "complete",
+          "metrics": {
+            "geomean_ratio": 0.9196,
+            "sig_wins": 8
+          },
+          "checks": {
+            "tests": "pass"
+          },
+          "diagnostics": {
+            "best_ratio": 0.6683,
+            "worst_ratio": 1.0164,
+            "cases": {
+              "h16/p64": {
+                "memcpy_ns": 8.43,
+                "cand_ns": 8.43,
+                "ratio": 1.0,
+                "p_mwu": 0.6783
+              },
+              "h16/p128": {
+                "memcpy_ns": 10.04,
+                "cand_ns": 8.84,
+                "ratio": 0.8805,
+                "p_mwu": 0.0
+              },
+              "h16/p256": {
+                "memcpy_ns": 13.25,
+                "cand_ns": 10.44,
+                "ratio": 0.7878,
+                "p_mwu": 0.0
+              },
+              "h16/p512": {
+                "memcpy_ns": 14.11,
+                "cand_ns": 14.1,
+                "ratio": 0.9994,
+                "p_mwu": 0.96691
+              },
+              "h16/p1024": {
+                "memcpy_ns": 21.72,
+                "cand_ns": 22.07,
+                "ratio": 1.0164,
+                "p_mwu": 0.53383
+              },
+              "h16/p4096": {
+                "memcpy_ns": 60.63,
+                "cand_ns": 60.32,
+                "ratio": 0.9949,
+                "p_mwu": 0.19851
+              },
+              "h16/p32768": {
+                "memcpy_ns": 1174.54,
+                "cand_ns": 1034.65,
+                "ratio": 0.8809,
+                "p_mwu": 0.0
+              },
+              "h16/p65536": {
+                "memcpy_ns": 2362.11,
+                "cand_ns": 2196.46,
+                "ratio": 0.9299,
+                "p_mwu": 6e-05
+              },
+              "h8/p64": {
+                "memcpy_ns": 2.15,
+                "cand_ns": 2.14,
+                "ratio": 0.9996,
+                "p_mwu": 0.19851
+              },
+              "h8/p128": {
+                "memcpy_ns": 3.81,
+                "cand_ns": 3.21,
+                "ratio": 0.8429,
+                "p_mwu": 0.0
+              },
+              "h8/p256": {
+                "memcpy_ns": 6.86,
+                "cand_ns": 4.58,
+                "ratio": 0.6683,
+                "p_mwu": 0.0
+              },
+              "h8/p512": {
+                "memcpy_ns": 9.77,
+                "cand_ns": 9.77,
+                "ratio": 1.0003,
+                "p_mwu": 1.0
+              },
+              "h8/p1024": {
+                "memcpy_ns": 14.59,
+                "cand_ns": 14.6,
+                "ratio": 1.0004,
+                "p_mwu": 0.31951
+              },
+              "h8/p4096": {
+                "memcpy_ns": 54.8,
+                "cand_ns": 53.97,
+                "ratio": 0.9849,
+                "p_mwu": 0.09709
+              },
+              "h8/p32768": {
+                "memcpy_ns": 1163.55,
+                "cand_ns": 1023.25,
+                "ratio": 0.8794,
+                "p_mwu": 6e-05
+              },
+              "h8/p65536": {
+                "memcpy_ns": 2343.83,
+                "cand_ns": 2187.23,
+                "ratio": 0.9332,
+                "p_mwu": 0.0
+              }
+            }
+          },
+          "provenance": {
+            "artifact_digest": "849cf09e9a047b0da8c4189739b677870141be412ddbf9245042adabbd3f88d2",
+            "evaluator": [
+              "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+              "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+            ],
+            "measured_at": 1795685429.8956947
+          }
+        },
+        "task": {
+          "name": "Hybrid 2-Method Scenario Speedup",
+          "source": "./source_hybrid",
+          "description": "Combine unaligned 4x AVX2 (small) and 32B-aligned 8x AVX2 temporal (L1/L2) and iteratively optimize.",
+          "evaluator": [
+            "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+          ],
+          "policy": "pareto",
+          "objectives": [
+            {
+              "metric": "geomean_ratio",
+              "type": "number",
+              "direction": "minimize",
+              "minimum_gain": 0.01
+            },
+            {
+              "metric": "sig_wins",
+              "type": "number",
+              "direction": "maximize",
+              "minimum_gain": 1
+            }
+          ],
+          "constraints": [
+            {
+              "check": "tests",
+              "required": "pass"
+            }
+          ],
+          "budget": {
+            "max_candidates": 8,
+            "max_elapsed_seconds": 1800
+          }
+        },
+        "introduction": {},
+        "history": [
+          {
+            "id": "baseline",
+            "hypothesis": "Baseline",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "First feasible reference"
+            }
+          },
+          {
+            "id": "candidate-001",
+            "hypothesis": "Hybrid v1: combine proven branchless unaligned AVX2 (128..256B) + 32B-aligned 8x AVX2 temporal (32K..64K) + std::memcpy fallback",
+            "decision": {
+              "action": "select",
+              "relation": "better",
+              "feasibility": "pass",
+              "reason": "pareto comparison: better"
+            }
+          },
+          {
+            "id": "candidate-002",
+            "hypothesis": "Add branchless 512B unroll (2x256B) to Method 1 and _MM_HINT_T0 prefetch (512B) to Method 2 (32K..64K)",
+            "decision": {
+              "action": "reject",
+              "relation": "equivalent",
+              "feasibility": "pass",
+              "reason": "pareto comparison: equivalent"
+            }
+          },
+          {
+            "id": "candidate-003",
+            "hypothesis": "Extend Method 1 branchless unroll to 1024B (4x256B) and increase Method 2 T0 prefetch distance to 1024B",
+            "decision": {
+              "action": "reject",
+              "relation": "worse",
+              "feasibility": "pass",
+              "reason": "pareto comparison: worse"
+            }
+          },
+          {
+            "id": "candidate-004",
+            "hypothesis": "Extend Method 1 branchless unroll down to 64B (2x AVX2) and tune Method 2 T0 prefetch distance to 256B",
+            "decision": {
+              "action": "reject",
+              "relation": "equivalent",
+              "feasibility": "pass",
+              "reason": "pareto comparison: equivalent"
+            }
+          },
+          {
+            "id": "candidate-005",
+            "hypothesis": "Use _MM_HINT_T1 (L2 prefetch, 512B ahead) instead of _MM_HINT_T0 in Method 2 to avoid L1d eviction at 32K..64K",
+            "decision": {
+              "action": "reject",
+              "relation": "worse",
+              "feasibility": "pass",
+              "reason": "pareto comparison: worse"
+            }
+          }
+        ],
+        "remaining_candidates": 3
+      },
+      "hypothesis": "Alignment-aware dispatch at 64B: use 2x AVX2 when src%32==16 (h16) and std::memcpy otherwise, keeping Hybrid v2 for 128..512B and 32K..64K",
+      "summary": "Added alignment-aware 64B AVX2 dispatch on top of Hybrid v2",
+      "digest": "b050ef699acb832a13cc41612d9a6ebd47ef98928396698e4fdddf751994bb0b",
+      "evaluation": {
+        "status": "complete",
+        "metrics": {
+          "geomean_ratio": 0.9728,
+          "sig_wins": 6
+        },
+        "checks": {
+          "tests": "pass"
+        },
+        "diagnostics": {
+          "best_ratio": 0.7849,
+          "worst_ratio": 1.837,
+          "cases": {
+            "h16/p64": {
+              "memcpy_ns": 8.47,
+              "cand_ns": 8.45,
+              "ratio": 0.9974,
+              "p_mwu": 0.31951
+            },
+            "h16/p128": {
+              "memcpy_ns": 10.12,
+              "cand_ns": 8.92,
+              "ratio": 0.8815,
+              "p_mwu": 0.0
+            },
+            "h16/p256": {
+              "memcpy_ns": 13.34,
+              "cand_ns": 10.47,
+              "ratio": 0.7849,
+              "p_mwu": 0.0
+            },
+            "h16/p512": {
+              "memcpy_ns": 14.23,
+              "cand_ns": 13.74,
+              "ratio": 0.9658,
+              "p_mwu": 0.0
+            },
+            "h16/p1024": {
+              "memcpy_ns": 21.61,
+              "cand_ns": 21.92,
+              "ratio": 1.0141,
+              "p_mwu": 0.6482
+            },
+            "h16/p4096": {
+              "memcpy_ns": 62.12,
+              "cand_ns": 62.01,
+              "ratio": 0.9982,
+              "p_mwu": 0.74002
+            },
+            "h16/p32768": {
+              "memcpy_ns": 1185.38,
+              "cand_ns": 1090.82,
+              "ratio": 0.9202,
+              "p_mwu": 0.00049
+            },
+            "h16/p65536": {
+              "memcpy_ns": 2427.14,
+              "cand_ns": 2393.14,
+              "ratio": 0.986,
+              "p_mwu": 0.80346
+            },
+            "h8/p64": {
+              "memcpy_ns": 2.16,
+              "cand_ns": 2.14,
+              "ratio": 0.9927,
+              "p_mwu": 0.0144
+            },
+            "h8/p128": {
+              "memcpy_ns": 3.79,
+              "cand_ns": 3.25,
+              "ratio": 0.8575,
+              "p_mwu": 0.0
+            },
+            "h8/p256": {
+              "memcpy_ns": 11.53,
+              "cand_ns": 9.11,
+              "ratio": 0.7901,
+              "p_mwu": 0.0
+            },
+            "h8/p512": {
+              "memcpy_ns": 10.5,
+              "cand_ns": 19.3,
+              "ratio": 1.837,
+              "p_mwu": 0.0
+            },
+            "h8/p1024": {
+              "memcpy_ns": 19.46,
+              "cand_ns": 19.5,
+              "ratio": 1.0019,
+              "p_mwu": 0.4553
+            },
+            "h8/p4096": {
+              "memcpy_ns": 58.99,
+              "cand_ns": 56.82,
+              "ratio": 0.9633,
+              "p_mwu": 0.04211
+            },
+            "h8/p32768": {
+              "memcpy_ns": 1192.87,
+              "cand_ns": 1068.24,
+              "ratio": 0.8955,
+              "p_mwu": 3e-05
+            },
+            "h8/p65536": {
+              "memcpy_ns": 2446.29,
+              "cand_ns": 2406.32,
+              "ratio": 0.9837,
+              "p_mwu": 0.19851
+            }
+          }
+        },
+        "provenance": {
+          "artifact_digest": "b050ef699acb832a13cc41612d9a6ebd47ef98928396698e4fdddf751994bb0b",
+          "evaluator": [
+            "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+            "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+          ],
+          "measured_at": 1795686765.7232804
+        }
+      },
+      "decision": {
+        "action": "reject",
+        "relation": "worse",
+        "feasibility": "pass",
+        "reason": "pareto comparison: worse"
+      }
+    }
+  ],
+  "frontier": [
+    "candidate-001",
+    "candidate-002",
+    "candidate-004"
+  ],
+  "budget": {
+    "max_candidates": 8,
+    "max_elapsed_seconds": 1800
+  },
+  "commands": {},
+  "sequence": 26,
+  "elapsed_seconds": 1417.8718845844269
+}

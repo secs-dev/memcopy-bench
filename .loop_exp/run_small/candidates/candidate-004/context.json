@@ -1,0 +1,166 @@
+{
+  "parent_id": "candidate-003",
+  "parent_digest": "0b90e8f68354c0f48b7f36a74c404d1036345628ccef1f119e1e58f08680d612",
+  "parent_evaluation": {
+    "status": "complete",
+    "metrics": {
+      "geomean_ratio": 0.952,
+      "win_count": 6
+    },
+    "checks": {
+      "tests": "pass"
+    },
+    "diagnostics": {
+      "best_ratio": 0.6999,
+      "worst_ratio": 1.2207,
+      "cases": {
+        "h16/p64": {
+          "memcpy_ns": 8.59,
+          "cand_ns": 8.53,
+          "ratio": 0.992
+        },
+        "h16/p128": {
+          "memcpy_ns": 10.27,
+          "cand_ns": 9.79,
+          "ratio": 0.953
+        },
+        "h16/p256": {
+          "memcpy_ns": 13.53,
+          "cand_ns": 10.5,
+          "ratio": 0.7762
+        },
+        "h16/p512": {
+          "memcpy_ns": 19.65,
+          "cand_ns": 18.83,
+          "ratio": 0.9582
+        },
+        "h16/p1024": {
+          "memcpy_ns": 22.05,
+          "cand_ns": 23.23,
+          "ratio": 1.0535
+        },
+        "h16/p2048": {
+          "memcpy_ns": 34.49,
+          "cand_ns": 35.58,
+          "ratio": 1.0315
+        },
+        "h8/p64": {
+          "memcpy_ns": 2.14,
+          "cand_ns": 2.17,
+          "ratio": 1.0134
+        },
+        "h8/p128": {
+          "memcpy_ns": 3.78,
+          "cand_ns": 2.65,
+          "ratio": 0.6999
+        },
+        "h8/p256": {
+          "memcpy_ns": 6.99,
+          "cand_ns": 5.7,
+          "ratio": 0.8152
+        },
+        "h8/p512": {
+          "memcpy_ns": 9.77,
+          "cand_ns": 8.76,
+          "ratio": 0.8964
+        },
+        "h8/p1024": {
+          "memcpy_ns": 17.96,
+          "cand_ns": 21.92,
+          "ratio": 1.2207
+        },
+        "h8/p2048": {
+          "memcpy_ns": 31.61,
+          "cand_ns": 36.24,
+          "ratio": 1.1463
+        }
+      }
+    },
+    "provenance": {
+      "artifact_digest": "0b90e8f68354c0f48b7f36a74c404d1036345628ccef1f119e1e58f08680d612",
+      "evaluator": [
+        "/usr/bin/python3",
+        "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_small.py"
+      ],
+      "measured_at": 1795683944.1659946
+    }
+  },
+  "task": {
+    "name": "Beat std::memcpy under 2KB (Telecom payloads)",
+    "source": "./source",
+    "description": "Find copy methods that stably beat std::memcpy for payloads <= 2048 B.",
+    "evaluator": [
+      "/usr/bin/python3",
+      "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_small.py"
+    ],
+    "policy": "pareto",
+    "objectives": [
+      {
+        "metric": "geomean_ratio",
+        "type": "number",
+        "direction": "minimize",
+        "minimum_gain": 0.01
+      },
+      {
+        "metric": "win_count",
+        "type": "number",
+        "direction": "maximize",
+        "minimum_gain": 1
+      }
+    ],
+    "constraints": [
+      {
+        "check": "tests",
+        "required": "pass"
+      }
+    ],
+    "budget": {
+      "max_candidates": 10,
+      "max_elapsed_seconds": 1800
+    }
+  },
+  "introduction": {},
+  "history": [
+    {
+      "id": "baseline",
+      "hypothesis": "Baseline",
+      "decision": {
+        "action": "select",
+        "relation": "better",
+        "feasibility": "pass",
+        "reason": "First feasible reference"
+      }
+    },
+    {
+      "id": "candidate-001",
+      "hypothesis": "Unaligned 4x AVX2 without dst-alignment prologue avoids prologue overhead for 256..2048B",
+      "decision": {
+        "action": "archive",
+        "relation": "incomparable",
+        "feasibility": "pass",
+        "reason": "pareto comparison: incomparable"
+      }
+    },
+    {
+      "id": "candidate-002",
+      "hypothesis": "Use unaligned 4x AVX2 strictly for 128..512B (where it won 6/6) and std::memcpy for <128B and >512B",
+      "decision": {
+        "action": "select",
+        "relation": "better",
+        "feasibility": "pass",
+        "reason": "pareto comparison: better"
+      }
+    },
+    {
+      "id": "candidate-003",
+      "hypothesis": "Fully unroll 256B and test 32B-aligned 4x AVX2 store loop for 513..2048B",
+      "decision": {
+        "action": "select",
+        "relation": "better",
+        "feasibility": "pass",
+        "reason": "pareto comparison: better"
+      }
+    }
+  ],
+  "remaining_candidates": 7
+}

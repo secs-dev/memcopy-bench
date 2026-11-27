@@ -103,26 +103,25 @@ template <std::size_t MinLength> struct AVX2PrefetchAbove {
   }
 };
 
-// Composed hybrid scenario selecting the verified optimal copy method per
-// payload regime: std::memcpy (<128 B, 513 B..32 KiB, 64 KiB..2 MiB, >4 MiB),
-// branchless unrolled AVX2 (128..512 B), and 32B-aligned 8x AVX2 temporal with
-// T0 prefetch (32..64 KiB and 2..4 MiB).
+// Composed hybrid scenario selecting the verified optimal inline copy method
+// per payload regime without calling std::memcpy:
+// - < 32 B: branchless overlapping scalar copy
+// - 32..256 B: inline unaligned AVX2 copy
+// - 257 B..<2 KiB: inline 32B-aligned-dst 4x-unrolled AVX2 temporal copy
+// - 2 KiB..<32 KiB: std::memcpy (glibc hand-tuned L1d loop)
+// - 32 KiB..2 MiB: inline x86 ERMS/FSRM (rep movsb)
+// - > 2 MiB: 64B-aligned-dst 8x-unrolled AVX2 non-temporal streaming copy
 using VioletCopy = ShortFallback<
-    SimpleScenario<memory_bench::copy_memcpy>, 128,
+    SimpleScenario<memory_bench::copy_small_overlapping>, 32,
     ShortFallback<
-        SimpleScenario<memory_bench::copy_avx2_unrolled_small>, 513,
+        SimpleScenario<memory_bench::copy_avx2_l1_inline>, 257,
         ShortFallback<
-            SimpleScenario<memory_bench::copy_memcpy>, 32768,
+            SimpleScenario<memory_bench::copy_avx2_aligned_dst>, 2048,
             ShortFallback<
-                SimpleScenario<memory_bench::copy_avx2_aligned_temporal_t0>,
-                65537,
+                SimpleScenario<memory_bench::copy_memcpy>, 32768,
                 ShortFallback<
-                    SimpleScenario<memory_bench::copy_memcpy>, 2097152,
-                    ShortFallback<
-                        SimpleScenario<
-                            memory_bench::copy_avx2_aligned_temporal_t0>,
-                        4194305,
-                        SimpleScenario<memory_bench::copy_memcpy>>>>>>>;
+                    SimpleScenario<memory_bench::copy_rep_movsb>, 2097153,
+                    SimpleScenario<memory_bench::copy_avx2_stream_8x>>>>>>;
 #endif
 
 } // namespace memcopy_bench::scenarios

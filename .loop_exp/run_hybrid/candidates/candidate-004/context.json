@@ -1,0 +1,202 @@
+{
+  "parent_id": "candidate-001",
+  "parent_digest": "849cf09e9a047b0da8c4189739b677870141be412ddbf9245042adabbd3f88d2",
+  "parent_evaluation": {
+    "status": "complete",
+    "metrics": {
+      "geomean_ratio": 0.9196,
+      "sig_wins": 8
+    },
+    "checks": {
+      "tests": "pass"
+    },
+    "diagnostics": {
+      "best_ratio": 0.6683,
+      "worst_ratio": 1.0164,
+      "cases": {
+        "h16/p64": {
+          "memcpy_ns": 8.43,
+          "cand_ns": 8.43,
+          "ratio": 1.0,
+          "p_mwu": 0.6783
+        },
+        "h16/p128": {
+          "memcpy_ns": 10.04,
+          "cand_ns": 8.84,
+          "ratio": 0.8805,
+          "p_mwu": 0.0
+        },
+        "h16/p256": {
+          "memcpy_ns": 13.25,
+          "cand_ns": 10.44,
+          "ratio": 0.7878,
+          "p_mwu": 0.0
+        },
+        "h16/p512": {
+          "memcpy_ns": 14.11,
+          "cand_ns": 14.1,
+          "ratio": 0.9994,
+          "p_mwu": 0.96691
+        },
+        "h16/p1024": {
+          "memcpy_ns": 21.72,
+          "cand_ns": 22.07,
+          "ratio": 1.0164,
+          "p_mwu": 0.53383
+        },
+        "h16/p4096": {
+          "memcpy_ns": 60.63,
+          "cand_ns": 60.32,
+          "ratio": 0.9949,
+          "p_mwu": 0.19851
+        },
+        "h16/p32768": {
+          "memcpy_ns": 1174.54,
+          "cand_ns": 1034.65,
+          "ratio": 0.8809,
+          "p_mwu": 0.0
+        },
+        "h16/p65536": {
+          "memcpy_ns": 2362.11,
+          "cand_ns": 2196.46,
+          "ratio": 0.9299,
+          "p_mwu": 6e-05
+        },
+        "h8/p64": {
+          "memcpy_ns": 2.15,
+          "cand_ns": 2.14,
+          "ratio": 0.9996,
+          "p_mwu": 0.19851
+        },
+        "h8/p128": {
+          "memcpy_ns": 3.81,
+          "cand_ns": 3.21,
+          "ratio": 0.8429,
+          "p_mwu": 0.0
+        },
+        "h8/p256": {
+          "memcpy_ns": 6.86,
+          "cand_ns": 4.58,
+          "ratio": 0.6683,
+          "p_mwu": 0.0
+        },
+        "h8/p512": {
+          "memcpy_ns": 9.77,
+          "cand_ns": 9.77,
+          "ratio": 1.0003,
+          "p_mwu": 1.0
+        },
+        "h8/p1024": {
+          "memcpy_ns": 14.59,
+          "cand_ns": 14.6,
+          "ratio": 1.0004,
+          "p_mwu": 0.31951
+        },
+        "h8/p4096": {
+          "memcpy_ns": 54.8,
+          "cand_ns": 53.97,
+          "ratio": 0.9849,
+          "p_mwu": 0.09709
+        },
+        "h8/p32768": {
+          "memcpy_ns": 1163.55,
+          "cand_ns": 1023.25,
+          "ratio": 0.8794,
+          "p_mwu": 6e-05
+        },
+        "h8/p65536": {
+          "memcpy_ns": 2343.83,
+          "cand_ns": 2187.23,
+          "ratio": 0.9332,
+          "p_mwu": 0.0
+        }
+      }
+    },
+    "provenance": {
+      "artifact_digest": "849cf09e9a047b0da8c4189739b677870141be412ddbf9245042adabbd3f88d2",
+      "evaluator": [
+        "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+        "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+      ],
+      "measured_at": 1795685429.8956947
+    }
+  },
+  "task": {
+    "name": "Hybrid 2-Method Scenario Speedup",
+    "source": "./source_hybrid",
+    "description": "Combine unaligned 4x AVX2 (small) and 32B-aligned 8x AVX2 temporal (L1/L2) and iteratively optimize.",
+    "evaluator": [
+      "/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3",
+      "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"
+    ],
+    "policy": "pareto",
+    "objectives": [
+      {
+        "metric": "geomean_ratio",
+        "type": "number",
+        "direction": "minimize",
+        "minimum_gain": 0.01
+      },
+      {
+        "metric": "sig_wins",
+        "type": "number",
+        "direction": "maximize",
+        "minimum_gain": 1
+      }
+    ],
+    "constraints": [
+      {
+        "check": "tests",
+        "required": "pass"
+      }
+    ],
+    "budget": {
+      "max_candidates": 8,
+      "max_elapsed_seconds": 1800
+    }
+  },
+  "introduction": {},
+  "history": [
+    {
+      "id": "baseline",
+      "hypothesis": "Baseline",
+      "decision": {
+        "action": "select",
+        "relation": "better",
+        "feasibility": "pass",
+        "reason": "First feasible reference"
+      }
+    },
+    {
+      "id": "candidate-001",
+      "hypothesis": "Hybrid v1: combine proven branchless unaligned AVX2 (128..256B) + 32B-aligned 8x AVX2 temporal (32K..64K) + std::memcpy fallback",
+      "decision": {
+        "action": "select",
+        "relation": "better",
+        "feasibility": "pass",
+        "reason": "pareto comparison: better"
+      }
+    },
+    {
+      "id": "candidate-002",
+      "hypothesis": "Add branchless 512B unroll (2x256B) to Method 1 and _MM_HINT_T0 prefetch (512B) to Method 2 (32K..64K)",
+      "decision": {
+        "action": "reject",
+        "relation": "equivalent",
+        "feasibility": "pass",
+        "reason": "pareto comparison: equivalent"
+      }
+    },
+    {
+      "id": "candidate-003",
+      "hypothesis": "Extend Method 1 branchless unroll to 1024B (4x256B) and increase Method 2 T0 prefetch distance to 1024B",
+      "decision": {
+        "action": "reject",
+        "relation": "worse",
+        "feasibility": "pass",
+        "reason": "pareto comparison: worse"
+      }
+    }
+  ],
+  "remaining_candidates": 5
+}

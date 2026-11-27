@@ -1,0 +1,64 @@
+{
+  "name": "violet-vs-all-clang-o3-native",
+  "scenarios": [
+    "Memcpy",
+    "VioletCopy",
+    "ComposedPrefetch",
+    "ComposedStream"
+  ],
+  "header_sizes": [
+    8,
+    16
+  ],
+  "payload_sizes": [
+    64,
+    128,
+    256,
+    512,
+    1024,
+    2048,
+    4096,
+    8192,
+    16384,
+    32768,
+    65536,
+    131072,
+    262144,
+    524288,
+    1048576,
+    2097152,
+    4194304,
+    8388608,
+    16777216,
+    33554432
+  ],
+  "min_time": "0.1s",
+  "env": {
+    "taskset_cpus": [
+      2
+    ],
+    "governor": "performance",
+    "no_turbo": true
+  },
+  "runs": 3,
+  "warmup_runs": 1,
+  "repetitions": 3,
+  "cooldown_s": 1,
+  "isolation": "batch",
+  "interleave": true,
+  "seed": 1234,
+  "timeout_s": 3600,
+  "on_trial_failure": "skip",
+  "stats": {
+    "percentiles": [
+      5,
+      25,
+      50,
+      75,
+      95
+    ],
+    "trim": "none",
+    "ci_level": 0.95,
+    "load_avg_threshold": 0.25
+  }
+}

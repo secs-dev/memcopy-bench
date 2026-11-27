@@ -1,0 +1,18 @@
+{
+  "name": "Hybrid 2-Method Scenario Speedup",
+  "source": "./source_hybrid",
+  "description": "Combine unaligned 4x AVX2 (small) and 32B-aligned 8x AVX2 temporal (L1/L2) and iteratively optimize.",
+  "evaluator": ["/home/modernovo/labs/memcp-bench/plot/.venv/bin/python3", "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_hybrid.py"],
+  "policy": "pareto",
+  "objectives": [
+    {"metric": "geomean_ratio", "type": "number", "direction": "minimize", "minimum_gain": 0.01},
+    {"metric": "sig_wins", "type": "number", "direction": "maximize", "minimum_gain": 1}
+  ],
+  "constraints": [
+    {"check": "tests", "required": "pass"}
+  ],
+  "budget": {
+    "max_candidates": 8,
+    "max_elapsed_seconds": 1800
+  }
+}

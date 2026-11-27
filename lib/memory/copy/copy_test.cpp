@@ -67,6 +67,9 @@ const std::pair<const char*, CopyFn> kImplementations[] = {
     {"copy_avx2_prefetch", copy_avx2_prefetch},
     {"copy_avx2_unrolled_small", copy_avx2_unrolled_small},
     {"copy_avx2_aligned_temporal_t0", copy_avx2_aligned_temporal_t0},
+    {"copy_avx2_l1_inline", copy_avx2_l1_inline},
+    {"copy_avx2_aligned_dst", copy_avx2_aligned_dst},
+    {"copy_avx2_stream_8x", copy_avx2_stream_8x},
 #endif
 };
 

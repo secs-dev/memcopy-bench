@@ -28,10 +28,16 @@ import json
 import math
 import os
 import re
+import statistics
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+
+try:
+    from scipy.stats import wilcoxon as _scipy_wilcoxon
+except ImportError:  # pragma: no cover - optional when run without scipy
+    _scipy_wilcoxon = None
 
 STATS_PLOT_RE = re.compile(
     r"^(?P<prefix>packet_scenario|copy)"
@@ -528,6 +534,171 @@ def warnings_section(stats: dict) -> str:
     return "\n".join(parts)
 
 
+def method_jitter(block: dict) -> float:
+    """Relative MAD jitter from per-round medians (fallback to overall MAD)."""
+    round_medians = block.get("per_round_median_ns") or {}
+    vals = [float(v) for v in round_medians.values()
+            if isinstance(v, (int, float)) and math.isfinite(v) and v > 0]
+    if len(vals) >= 2:
+        med = statistics.median(vals)
+        mad = statistics.median([abs(x - med) for x in vals])
+        return (1.4826 * mad / med) if med > 0 else 0.0
+    summary = block.get("time_ns") or {}
+    med = summary.get("median")
+    mad = summary.get("mad")
+    if isinstance(med, (int, float)) and isinstance(mad, (int, float)) and med > 0:
+        return 1.4826 * float(mad) / float(med)
+    return 0.0
+
+
+def wilcoxon_p_value(row_block: dict, col_block: dict) -> float | None:
+    """Two-sided paired Wilcoxon signed-rank p-value across common rounds."""
+    if _scipy_wilcoxon is None:
+        return None
+    row_rounds = row_block.get("per_round_median_ns") or {}
+    col_rounds = col_block.get("per_round_median_ns") or {}
+    common = sorted(set(row_rounds) & set(col_rounds))
+    if len(common) < 6:
+        return None
+    diffs = []
+    for k in common:
+        rv, cv = row_rounds[k], col_rounds[k]
+        if (isinstance(rv, (int, float)) and isinstance(cv, (int, float))
+                and math.isfinite(rv) and math.isfinite(cv)):
+            diffs.append(float(rv) - float(cv))
+    if len(diffs) < 6 or all(d == 0.0 for d in diffs):
+        return None
+    try:
+        res = _scipy_wilcoxon(diffs, alternative="two-sided",
+                              zero_method="wilcox")
+        p = float(res.pvalue)
+        return p if math.isfinite(p) else None
+    except ValueError:
+        return None
+
+
+def paired_comparison(row_block: dict, col_block: dict,
+                      min_delta: float = 0.02,
+                      alpha: float = 0.05) -> tuple[str, float, float, float | None]:
+    """Compare row method vs col method using MAD-jitter delta and Wilcoxon p.
+
+    Returns (verdict, pct_speedup, delta, p_value) where verdict is 'WIN',
+    'TIE', or 'LOSS' and positive pct_speedup means row is faster than col.
+    """
+    row_med = (row_block.get("time_ns") or {}).get("median")
+    col_med = (col_block.get("time_ns") or {}).get("median")
+    if not (isinstance(row_med, (int, float)) and isinstance(col_med, (int, float))
+            and row_med > 0 and col_med > 0):
+        return "TIE", 0.0, min_delta, None
+    ratio = float(col_med) / float(row_med)
+    diff = ratio - 1.0
+    delta = max(1.5 * max(method_jitter(row_block), method_jitter(col_block)),
+                min_delta)
+    p_val = wilcoxon_p_value(row_block, col_block)
+    sig = (p_val is None) or (p_val < alpha)
+    if diff > delta and sig:
+        verdict = "WIN"
+    elif diff < -delta and sig:
+        verdict = "LOSS"
+    else:
+        verdict = "TIE"
+    return verdict, diff * 100.0, delta, p_val
+
+
+def find_baseline_method(methods: list[str]) -> str | None:
+    """Pick the baseline method name (preferring Memcpy) from available methods."""
+    for candidate in ("Memcpy", "BM_Memcpy", "memcpy"):
+        if candidate in methods:
+            return candidate
+    for name in methods:
+        if "memcpy" in name.lower():
+            return name
+    return methods[0] if methods else None
+
+
+def paired_comparisons_section(stats: dict) -> str:
+    """Render per-header tables comparing each method against Memcpy."""
+    grouped: dict[tuple[int | None, int], dict[str, dict]] = {}
+    all_methods: set[str] = set()
+    for name, entry in stats.get("benchmarks", {}).items():
+        meta = benchmark_meta(name, entry)
+        size = meta.get("size")
+        if size is None:
+            continue
+        metrics = entry.get("metrics") or {}
+        block = metrics.get("cpu") or metrics.get("real") or {}
+        if not (block.get("time_ns") or {}).get("median"):
+            continue
+        method = str(meta["method"])
+        all_methods.add(method)
+        grouped.setdefault((meta.get("header"), int(size)), {})[method] = block
+
+    if not grouped:
+        return '<p class="muted">No benchmarks available for comparison.</p>'
+
+    baseline = find_baseline_method(sorted(all_methods))
+    if baseline is None:
+        return '<p class="muted">No baseline method found for comparison.</p>'
+
+    by_header: dict[int | None, list[tuple[int, dict[str, dict]]]] = {}
+    for (header, size), methods in sorted(grouped.items()):
+        if baseline not in methods or len(methods) < 2:
+            continue
+        by_header.setdefault(header, []).append((size, methods))
+
+    if not by_header:
+        return (f'<p class="muted">Need {esc(baseline)} and at least one other '
+                "method per size for comparisons.</p>")
+
+    blocks = [
+        f'<p class="muted">Speedup vs <strong>{esc(baseline)}</strong> using '
+        '<code>Δ = max(1.5 × 1.4826 × MAD / median, 2.0%)</code> '
+        'from per-round CPU medians. <strong>WIN</strong> = faster than '
+        f'{esc(baseline)} by &gt; Δ; <strong>LOSS</strong> = slower by &gt; Δ; '
+        '<strong>TIE</strong> = within ±Δ.</p>'
+    ]
+    for header, items in sorted(
+            by_header.items(), key=lambda kv: (-1 if kv[0] is None else kv[0])):
+        others = sorted({
+            m for _, methods in items for m in methods if m != baseline
+        })
+        if not others:
+            continue
+        label = f"Header H={header}" if header is not None else "All sizes"
+        head_cells = (f"<th>Payload / Size</th><th>{esc(baseline)} (ns)</th>"
+                      + "".join(f"<th>{esc(m)}</th>" for m in others))
+        rows_html = []
+        for size, methods in items:
+            base_block = methods[baseline]
+            base_med = base_block["time_ns"]["median"]
+            cells = [f"<td>{size} B</td>", f"<td>{fmt(base_med)}</td>"]
+            for m in others:
+                if m not in methods:
+                    cells.append('<td class="cmp-diag">—</td>')
+                    continue
+                verdict, pct, delta, p_val = paired_comparison(
+                    methods[m], base_block)
+                cls = {"WIN": "cmp-win", "TIE": "cmp-tie",
+                       "LOSS": "cmp-loss"}[verdict]
+                cand_med = methods[m]["time_ns"]["median"]
+                p_str = f"p={p_val:.3g}" if p_val is not None else "p=n/a"
+                tip = (f"Δ={delta * 100:.1f}%, {p_str}, "
+                       f"{m}={fmt(cand_med)} ns, "
+                       f"{baseline}={fmt(base_med)} ns")
+                p_badge = (f' <span class="muted">({p_str})</span>'
+                           if p_val is not None else "")
+                cells.append(
+                    f'<td class="{cls}" title="{esc(tip)}">'
+                    f"{verdict} {pct:+.1f}%{p_badge}</td>")
+            rows_html.append("<tr>" + "".join(cells) + "</tr>")
+        blocks.append(
+            f"<h3>{esc(label)}</h3>"
+            f'<div class="table-wrap"><table class="data cmp-matrix">'
+            f"<thead><tr>{head_cells}</tr></thead>"
+            f"<tbody>{''.join(rows_html)}</tbody></table></div>")
+    return "\n".join(blocks)
+
+
 def embed_plot(plot: Plot, output: Path, link: bool) -> str:
     if link:
         src = os.path.relpath(plot.path, output.parent)
@@ -570,6 +741,15 @@ pre { margin: 0; white-space: pre-wrap; font-size: 12px; }
 iframe.plot { width: 100%; height: 660px; border: 1px solid #dce2ea;
               border-radius: 8px; background: #fff; }
 ul { margin: 8px 0; padding-left: 22px; }
+details.cmp-group { margin: 10px 0 16px; border: 1px solid #dfe4ec;
+                    border-radius: 8px; padding: 8px 14px; background: #fafbfd; }
+details.cmp-group > summary { cursor: pointer; padding: 4px 0; }
+table.cmp-matrix td, table.cmp-matrix th { text-align: center; font-size: 13px; }
+table.cmp-matrix tbody th { text-align: left; background: #f4f6f9; }
+td.cmp-win { background: #e8f5e9; color: #1b5e20; font-weight: 600; }
+td.cmp-tie { background: #f4f6f9; color: #5d6b82; }
+td.cmp-loss { background: #ffebee; color: #b71c1c; font-weight: 600; }
+td.cmp-diag { background: #eef2f7; color: #8c98ab; }
 """
 
 
@@ -622,6 +802,7 @@ def build_report(stats: dict, meta: dict | None, plots: list[Plot],
     <a href="#overview">Overview</a>
     <a href="#system">System</a>
     <a href="#scenarios">Scenarios</a>
+    <a href="#comparisons">Comparisons</a>
     <a href="#warnings">Warnings</a>
     <a href="#plots">Plots and tables</a>
   </nav>
@@ -640,6 +821,11 @@ def build_report(stats: dict, meta: dict | None, plots: list[Plot],
 <section id="scenarios">
   <h2>Scenarios and measurements</h2>
   {scenario_section(stats)}
+</section>
+
+<section id="comparisons">
+  <h2>Paired comparisons (MAD-jitter Δ)</h2>
+  {paired_comparisons_section(stats)}
 </section>
 
 <section id="warnings">

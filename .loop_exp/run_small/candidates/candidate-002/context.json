@@ -1,0 +1,146 @@
+{
+  "parent_id": "baseline",
+  "parent_digest": "ffa0b13d203aec1a3cf013cd93a5370bf015c10e9b79357a528af074a5dd9a9c",
+  "parent_evaluation": {
+    "status": "complete",
+    "metrics": {
+      "geomean_ratio": 1.0016,
+      "win_count": 1
+    },
+    "checks": {
+      "tests": "pass"
+    },
+    "diagnostics": {
+      "best_ratio": 0.9407,
+      "worst_ratio": 1.1568,
+      "cases": {
+        "h16/p64": {
+          "memcpy_ns": 8.61,
+          "cand_ns": 8.74,
+          "ratio": 1.0149
+        },
+        "h16/p128": {
+          "memcpy_ns": 10.26,
+          "cand_ns": 10.24,
+          "ratio": 0.9979
+        },
+        "h16/p256": {
+          "memcpy_ns": 13.5,
+          "cand_ns": 13.46,
+          "ratio": 0.9966
+        },
+        "h16/p512": {
+          "memcpy_ns": 14.52,
+          "cand_ns": 14.4,
+          "ratio": 0.9915
+        },
+        "h16/p1024": {
+          "memcpy_ns": 22.69,
+          "cand_ns": 22.13,
+          "ratio": 0.9754
+        },
+        "h16/p2048": {
+          "memcpy_ns": 37.57,
+          "cand_ns": 35.35,
+          "ratio": 0.9407
+        },
+        "h8/p64": {
+          "memcpy_ns": 2.18,
+          "cand_ns": 2.16,
+          "ratio": 0.9898
+        },
+        "h8/p128": {
+          "memcpy_ns": 3.86,
+          "cand_ns": 3.8,
+          "ratio": 0.9862
+        },
+        "h8/p256": {
+          "memcpy_ns": 7.04,
+          "cand_ns": 7.05,
+          "ratio": 1.0011
+        },
+        "h8/p512": {
+          "memcpy_ns": 11.58,
+          "cand_ns": 11.67,
+          "ratio": 1.0079
+        },
+        "h8/p1024": {
+          "memcpy_ns": 15.52,
+          "cand_ns": 15.12,
+          "ratio": 0.9744
+        },
+        "h8/p2048": {
+          "memcpy_ns": 32.34,
+          "cand_ns": 37.41,
+          "ratio": 1.1568
+        }
+      }
+    },
+    "provenance": {
+      "artifact_digest": "ffa0b13d203aec1a3cf013cd93a5370bf015c10e9b79357a528af074a5dd9a9c",
+      "evaluator": [
+        "/usr/bin/python3",
+        "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_small.py"
+      ],
+      "measured_at": 1795683700.2098067
+    }
+  },
+  "task": {
+    "name": "Beat std::memcpy under 2KB (Telecom payloads)",
+    "source": "./source",
+    "description": "Find copy methods that stably beat std::memcpy for payloads <= 2048 B.",
+    "evaluator": [
+      "/usr/bin/python3",
+      "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate_small.py"
+    ],
+    "policy": "pareto",
+    "objectives": [
+      {
+        "metric": "geomean_ratio",
+        "type": "number",
+        "direction": "minimize",
+        "minimum_gain": 0.01
+      },
+      {
+        "metric": "win_count",
+        "type": "number",
+        "direction": "maximize",
+        "minimum_gain": 1
+      }
+    ],
+    "constraints": [
+      {
+        "check": "tests",
+        "required": "pass"
+      }
+    ],
+    "budget": {
+      "max_candidates": 10,
+      "max_elapsed_seconds": 1800
+    }
+  },
+  "introduction": {},
+  "history": [
+    {
+      "id": "baseline",
+      "hypothesis": "Baseline",
+      "decision": {
+        "action": "select",
+        "relation": "better",
+        "feasibility": "pass",
+        "reason": "First feasible reference"
+      }
+    },
+    {
+      "id": "candidate-001",
+      "hypothesis": "Unaligned 4x AVX2 without dst-alignment prologue avoids prologue overhead for 256..2048B",
+      "decision": {
+        "action": "archive",
+        "relation": "incomparable",
+        "feasibility": "pass",
+        "reason": "pareto comparison: incomparable"
+      }
+    }
+  ],
+  "remaining_candidates": 9
+}

@@ -74,34 +74,36 @@ class LinuxTopologyTests(unittest.TestCase):
 
     def test_topology_reports_smt_siblings_and_isolation(self):
         topo = self.adapter.topology_info([1, 2])
-        self.assertTrue(topo["available"])
-        self.assertEqual(topo["online_cpus"], [0, 1, 2, 3])
-        self.assertEqual(topo["isolated_cpus"], [3])
-        self.assertEqual(topo["isolcpus_boot"], "3")
+        self.assertEqual(topo["requested_cpus"], [1, 2])
+        self.assertEqual(topo["online_cpus"], "0-3")
+        self.assertEqual(topo["isolated_cpus"], "3")
         self.assertEqual(topo["smt_control"], "on")
-        self.assertEqual(topo["numa_nodes"], {"node0": [0, 1, 2, 3]})
-        self.assertEqual(topo["pinned"]["siblings"]["1"], [0, 1])
-        self.assertTrue(topo["pinned"]["all_online"])
-        self.assertFalse(topo["pinned"]["any_isolated"])
-        self.assertEqual(topo["pinned"]["co_located_cpus"], [])
+        self.assertEqual(topo["thread_siblings_list"], {"1": "0,1", "2": "2,3"})
+        self.assertEqual(topo["core_ids"], {"1": 0, "2": 1})
+        self.assertEqual(topo["physical_package_ids"], {"1": 0, "2": 0})
+        self.assertTrue(any("CPU1 shares a physical core" in w
+                            for w in topo["warnings"]))
 
     def test_topology_detects_co_located_pinned_cpus(self):
         topo = self.adapter.topology_info([0, 1])
-        self.assertEqual(topo["pinned"]["co_located_cpus"], [0, 1])
+        self.assertNotIn("warnings", topo)
 
     def test_topology_handles_missing_sysfs(self):
         self.adapter.CPU_BASE = Path(self.tmp.name) / "missing"
-        self.assertEqual(self.adapter.topology_info([0]),
-                         {"source": "sysfs", "available": False})
+        topo = self.adapter.topology_info([0])
+        self.assertEqual(topo["requested_cpus"], [0])
+        self.assertNotIn("online_cpus", topo)
+        self.assertNotIn("thread_siblings_list", topo)
 
 
 class NiceTests(unittest.TestCase):
-    def test_preexec_hook_is_posix_only(self):
-        if os.name != "posix":
-            self.assertIsNone(rx._nice_preexec(5))
-            return
-        self.assertIsNone(rx._nice_preexec(None))
-        self.assertTrue(callable(rx._nice_preexec(5)))
+    def test_command_wraps_with_nice_when_applied(self):
+        adapter = rx.LinuxEnvironment()
+        adapter._applied_nice = 5
+        self.assertEqual(
+            adapter.command("bench", ["--flag"], [2]),
+            ["nice", "-n", "5", "taskset", "-c", "2", "bench", "--flag"],
+        )
 
     def test_child_inherits_requested_nice(self):
         if os.name != "posix" or not hasattr(os, "nice"):
@@ -111,23 +113,25 @@ class NiceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             target = Path(tmp) / "nice.txt"
             code = (
-                "import os, pathlib, sys; "
+                "import os, pathlib; "
                 f"pathlib.Path({str(target)!r}).write_text(str(os.nice(0)))"
             )
-            rx.EnvironmentAdapter().run(
-                [sys.executable, "-c", code], [], nice=5)
+            adapter = rx.LinuxEnvironment()
+            adapter.apply({"nice": 5})
+            cmd = adapter.command(sys.executable, ["-c", code], [])
+            adapter.run(cmd, [])
             self.assertEqual(target.read_text(encoding="utf-8"), str(expected))
 
     def test_nice_is_recorded_in_applied_environment(self):
         if os.name != "posix" or not hasattr(os, "nice"):
             self.skipTest("POSIX niceness is unavailable")
         result = rx.LinuxEnvironment().apply({"nice": 5})
-        self.assertEqual(result["applied"]["nice"], 5)
+        self.assertEqual(result["applied"]["nice"], "nice 5")
         self.assertNotIn("nice", result["skipped"])
 
     def test_launch_reports_start_failures(self):
         class FailingAdapter(rx.EnvironmentAdapter):
-            def run(self, cmd, cpus, timeout=None, nice=None):
+            def run(self, cmd, cpus, timeout=None):
                 raise subprocess.SubprocessError("preexec failed")
 
         with tempfile.TemporaryDirectory() as tmp:

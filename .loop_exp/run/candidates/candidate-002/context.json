@@ -1,0 +1,176 @@
+{
+  "parent_id": "baseline",
+  "parent_digest": "ffa0b13d203aec1a3cf013cd93a5370bf015c10e9b79357a528af074a5dd9a9c",
+  "parent_evaluation": {
+    "status": "ok",
+    "metrics": {
+      "geomean_ratio": 0.9999,
+      "win_count": 1
+    },
+    "checks": {
+      "tests": "pass"
+    },
+    "diagnostics": {
+      "best_ratio": 0.926,
+      "worst_ratio": 1.0165,
+      "cases": {
+        "h16/p64": {
+          "memcpy_ns": 8.45,
+          "cand_ns": 8.45,
+          "ratio": 1.0002
+        },
+        "h16/p256": {
+          "memcpy_ns": 17.84,
+          "cand_ns": 17.85,
+          "ratio": 1.0001
+        },
+        "h16/p1024": {
+          "memcpy_ns": 23.94,
+          "cand_ns": 22.17,
+          "ratio": 0.926
+        },
+        "h16/p4096": {
+          "memcpy_ns": 61.18,
+          "cand_ns": 61.13,
+          "ratio": 0.9991
+        },
+        "h16/p32768": {
+          "memcpy_ns": 1203.38,
+          "cand_ns": 1204.37,
+          "ratio": 1.0008
+        },
+        "h16/p65536": {
+          "memcpy_ns": 2380.23,
+          "cand_ns": 2376.27,
+          "ratio": 0.9983
+        },
+        "h16/p262144": {
+          "memcpy_ns": 12100.08,
+          "cand_ns": 12081.72,
+          "ratio": 0.9985
+        },
+        "h16/p4194304": {
+          "memcpy_ns": 602140.99,
+          "cand_ns": 600584.97,
+          "ratio": 0.9974
+        },
+        "h16/p16777216": {
+          "memcpy_ns": 2011000.19,
+          "cand_ns": 2042623.11,
+          "ratio": 1.0157
+        },
+        "h8/p64": {
+          "memcpy_ns": 2.17,
+          "cand_ns": 2.16,
+          "ratio": 0.9982
+        },
+        "h8/p256": {
+          "memcpy_ns": 7.88,
+          "cand_ns": 7.91,
+          "ratio": 1.0042
+        },
+        "h8/p1024": {
+          "memcpy_ns": 15.02,
+          "cand_ns": 15.01,
+          "ratio": 0.9998
+        },
+        "h8/p4096": {
+          "memcpy_ns": 58.5,
+          "cand_ns": 59.46,
+          "ratio": 1.0165
+        },
+        "h8/p32768": {
+          "memcpy_ns": 1184.9,
+          "cand_ns": 1181.08,
+          "ratio": 0.9968
+        },
+        "h8/p65536": {
+          "memcpy_ns": 2362.33,
+          "cand_ns": 2388.6,
+          "ratio": 1.0111
+        },
+        "h8/p262144": {
+          "memcpy_ns": 11998.09,
+          "cand_ns": 12163.1,
+          "ratio": 1.0138
+        },
+        "h8/p4194304": {
+          "memcpy_ns": 599188.5,
+          "cand_ns": 608490.55,
+          "ratio": 1.0155
+        },
+        "h8/p16777216": {
+          "memcpy_ns": 1945369.14,
+          "cand_ns": 1963690.46,
+          "ratio": 1.0094
+        }
+      }
+    },
+    "provenance": {
+      "artifact_digest": "ffa0b13d203aec1a3cf013cd93a5370bf015c10e9b79357a528af074a5dd9a9c",
+      "evaluator": [
+        "/usr/bin/python3",
+        "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py"
+      ],
+      "measured_at": 1795682175.338778
+    }
+  },
+  "task": {
+    "name": "Beat std::memcpy in BM_PacketScenario",
+    "source": "./source",
+    "description": "Find copy methods and scenario compositions that stably beat std::memcpy across header/payload sizes.",
+    "evaluator": [
+      "/usr/bin/python3",
+      "/home/modernovo/labs/memcp-bench/.loop_exp/evaluate.py"
+    ],
+    "policy": "pareto",
+    "objectives": [
+      {
+        "metric": "geomean_ratio",
+        "type": "number",
+        "direction": "minimize",
+        "minimum_gain": 0.01
+      },
+      {
+        "metric": "win_count",
+        "type": "number",
+        "direction": "maximize",
+        "minimum_gain": 1
+      }
+    ],
+    "constraints": [
+      {
+        "check": "tests",
+        "required": "pass"
+      }
+    ],
+    "budget": {
+      "max_candidates": 12,
+      "max_elapsed_seconds": 3600
+    }
+  },
+  "introduction": {},
+  "history": [
+    {
+      "id": "baseline",
+      "hypothesis": "Baseline",
+      "decision": {
+        "action": "reject",
+        "relation": "unknown",
+        "feasibility": "unknown",
+        "reason": "ok"
+      }
+    },
+    {
+      "id": "candidate-001",
+      "hypothesis": "Overlapping AVX2 head/tail + 32B-aligned store loop removes PLT call overhead and scalar tail loops",
+      "decision": {
+        "action": "reject",
+        "relation": "unknown",
+        "feasibility": "unknown",
+        "reason": "ok"
+      }
+    }
+  ],
+  "remaining_candidates": 11
+}

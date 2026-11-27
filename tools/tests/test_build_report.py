@@ -147,6 +147,33 @@ class BuildReportTest(unittest.TestCase):
             self.assertIn("min_time", report)
             self.assertNotIn("deadbeef", report)
 
+    def test_paired_comparisons_matrix_uses_mad_jitter(self):
+        stats = stats_fixture()
+        stats["benchmarks"]["BM_PacketScenario/VioletCopy/h8/p64"] = {
+            "scenario": "VioletCopy", "header": 8, "payload": 64,
+            "bytes": 72, "n": 18,
+            "metrics": {
+                "cpu": {
+                    "time_ns": summary(1.5),
+                    "throughput_gbps": summary(48.0),
+                    "per_round_median_ns": {
+                        str(i): 1.49 + 0.002 * i for i in range(6)
+                    },
+                },
+            },
+            "discarded": [],
+        }
+        stats["benchmarks"]["BM_PacketScenario/Memcpy/h8/p64"]["metrics"][
+            "cpu"]["per_round_median_ns"] = {
+                str(i): 1.99 + 0.002 * i for i in range(6)
+            }
+        html_out = br.paired_comparisons_section(stats)
+        self.assertIn("Speedup vs <strong>Memcpy</strong>", html_out)
+        self.assertIn("64 B", html_out)
+        self.assertIn("WIN +33.3%", html_out)
+        self.assertIn("p=0.0312", html_out)
+        self.assertNotIn("LOSS -25.0%", html_out)
+
 
 if __name__ == "__main__":
     unittest.main()
