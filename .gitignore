@@ -25,3 +25,4 @@ __pycache__/
 plot/.venv/
 
 results/
+docs/doxygen_out/

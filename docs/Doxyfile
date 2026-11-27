@@ -1,0 +1,10 @@
+PROJECT_NAME           = "Memcopy Bench"
+OUTPUT_DIRECTORY       = docs/doxygen_out
+GENERATE_HTML          = NO
+GENERATE_XML           = YES
+XML_OUTPUT             = xml
+INPUT                  = ../lib ../benchmarks
+RECURSIVE              = YES
+FILE_PATTERNS          = *.h *.hpp *.cpp
+EXTRACT_ALL            = YES
+PREDEFINED             = __x86_64__=1 __GNUC__=1
